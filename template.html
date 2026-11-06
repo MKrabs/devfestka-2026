@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>My DevFest Karlsruhe</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: one continuous timeline down the left edge; each slot = start time + duration, its talks, end time. */
+:root{
+  --bg:#f3f4f8; --surface:#ffffff; --ink:#151a33; --muted:#5b6283; --line:#d9dcea;
+  --pick:#1f4bd8; --pick-ink:#ffffff; --pick-soft:#e3e9ff; --brk:#eceef5; --now:#e0322c;
+  --t-ai:#7c4dff; --t-web:#0f9d8a; --t-mobile:#2b8fd6; --t-sec:#e5541b; --t-java:#c98a00; --t-ops:#3a9d3a; --t-ux:#d6408f; --t-clean:#4b6a8f; --t-arch:#8a6d4b; --t-other:#7a7f99; --warn:#c77800;
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible",ui-sans-serif,system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#0f1222; --surface:#181c33; --ink:#e8eaf6; --muted:#9aa0c3; --line:#2b3052;
+  --pick:#7d9bff; --pick-ink:#0f1222; --pick-soft:#232c55; --brk:#151933; --now:#ff5d55;
+  --t-ai:#a88bff; --t-web:#3cc7b3; --t-mobile:#62b3f0; --t-sec:#ff8a5c; --t-java:#f0b93a; --t-ops:#6cc96c; --t-ux:#f07ab6; --t-clean:#8fa9c9; --t-arch:#c4a27c; --t-other:#a0a5c0; --warn:#ffb547;
+  color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 var(--f-body)}
+.wrap{max-width:1100px;margin:0 auto;padding-block:max(28px,env(safe-area-inset-top,0px)) 120px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{display:flex;flex-wrap:wrap;gap:16px 24px;align-items:end;justify-content:space-between;margin-bottom:24px}
+h1{font:800 clamp(2rem,5vw,3.2rem)/1 var(--f-display);margin:0;text-wrap:balance;letter-spacing:-.02em}
+.sub{color:var(--muted);margin:6px 0 0}
+.day{color:var(--ink)}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button{font:inherit;cursor:pointer;color:inherit}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:7px 14px;font-size:.9rem}
+.btn[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+:focus-visible{outline:3px solid var(--pick);outline-offset:2px}
+.count{font:500 .85rem var(--f-mono);color:var(--muted)}
+
+
+/* talk cards */
+.talks{display:grid;grid-template-columns:repeat(var(--cols,3),minmax(0,1fr));grid-auto-rows:1fr;gap:10px}
+.talk{position:relative;display:flex;flex-direction:column;gap:8px;padding:12px 14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);
+  border-radius:10px;min-width:0;cursor:pointer;transition:background .2s,border-color .2s,opacity .2s}
+.talk:hover{border-color:var(--pick)}
+
+
+
+.talk.dim{opacity:.55}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.room{font:500 .72rem var(--f-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.en{font:500 .65rem/1 var(--f-mono);letter-spacing:.06em;padding:3px 5px;border:1px solid currentColor;border-radius:4px;opacity:.55}
+.title{font:600 1.02rem/1.25 var(--f-display);text-wrap:balance;margin:0}
+.people{display:flex;flex-direction:column;gap:6px}
+.person{display:flex;align-items:center;gap:9px;min-width:0}
+.av{position:relative;flex:none;width:34px;height:34px;border-radius:50%;background:var(--brk);color:var(--muted);display:grid;place-items:center;font:700 .7rem var(--f-body);overflow:hidden}
+.av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.who{min-width:0;line-height:1.2}
+.name{font-weight:700;font-size:.88rem}
+.co{display:block;font-size:.76rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.foot{margin-top:auto;display:flex;justify-content:space-between;align-items:end;gap:8px;padding-top:4px}
+.tags{display:flex;flex-wrap:wrap;gap:4px}
+.tag{font-size:.72rem;padding:1px 8px;border-radius:999px;color:var(--ink);background:color-mix(in srgb,var(--c) 24%,var(--surface))}
+
+/* status carousel: tap to move to the next state */
+.status{flex:none;display:block;border:0;background:none;padding:0;color:inherit}
+.status .win{display:block;width:96px;height:28px;overflow:hidden;border-radius:999px;border:1px solid var(--line);background:var(--surface)}
+.status .track{display:flex;flex-direction:column;transition:transform .25s ease}
+.status .track span{height:26px;display:grid;place-items:center;font-size:.78rem;font-weight:700;color:var(--ink)}
+.status .track span:first-child{color:var(--muted);font-weight:400}
+.status[data-i="1"] .win{background:var(--pick);border-color:var(--pick)}
+.status[data-i="1"] .track span{color:var(--pick-ink)}
+.status[data-i="2"] .win{border-color:var(--pick)}
+.status[data-i="2"] .track span{color:var(--pick)}
+/* in My picks everything shown is picked, so the switch stays neutral */
+body[data-view="mine"] .status .win{background:var(--surface);border-color:var(--line)}
+body[data-view="mine"] .status .track span{color:var(--ink)}
+
+.fixed{display:flex;align-items:center;gap:12px;background:var(--brk);border-radius:10px;padding:8px 14px;color:var(--muted);align-self:start}
+.fixed.plenary{background:var(--surface);border:1px solid var(--line);color:var(--ink)}
+.fixed b{font-family:var(--f-display);font-weight:600;color:var(--ink)}
+.keynote{cursor:pointer;display:flex;flex-direction:column;gap:8px;padding:12px 14px;align-self:stretch}
+.past{opacity:.45}
+/* slot = time header, timeline body (thin ruler on the left, cards beside it), end time */
+.slot{position:relative;padding-block:12px;padding-left:14px;border-top:1px solid var(--line)}
+.slot::before{content:"";position:absolute;left:-7px;top:-1px;bottom:0;width:9px;border-right:2px solid var(--line);
+  background:repeating-linear-gradient(to bottom,var(--line) 0 1px,transparent 1px 9px) left/7px 100% repeat-y} /* one unbroken line through every row; ticks hang left into the margin */
+.head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font:500 .85rem/1 var(--f-mono);color:var(--muted);margin-bottom:8px;font-variant-numeric:tabular-nums}
+.head b{font-weight:500;color:var(--ink)}
+.end{font:500 .8rem/1 var(--f-mono);color:var(--muted);margin-top:8px;opacity:.8}
+.body{position:relative}
+.ftime{flex:none;display:flex;flex-direction:column;font:500 .74rem/1.25 var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.ftime span:last-child{opacity:.75}
+.soon,.left{font:700 .7rem/1 var(--f-body);padding:4px 8px;border-radius:999px;background:var(--ink);color:var(--bg)}
+.left{background:var(--now);color:#fff}
+.nowdot{position:absolute;left:-5px;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:var(--now);box-shadow:0 0 0 3px var(--bg);z-index:4;pointer-events:none}
+.nowline{position:absolute;left:2px;right:0;height:0;border-top:2px solid var(--now);z-index:0;pointer-events:none}
+.fab{position:fixed;z-index:20;left:max(16px,env(safe-area-inset-left,0px));bottom:max(16px,calc(env(safe-area-inset-bottom,0px) + 8px));
+  display:flex;align-items:center;gap:6px;height:40px;padding:0 14px 0 10px;border:0;border-radius:999px;background:var(--ink);color:var(--bg);
+  font-weight:700;font-size:.85rem;box-shadow:0 6px 20px rgb(0 0 0/.22)}
+.fab svg{flex:none}
+.fab .win{display:block;height:20px;overflow:hidden}
+.fab .track{display:flex;flex-direction:column;transition:transform .25s ease}
+.fab .track span{height:20px;line-height:20px;white-space:nowrap}
+.talks.one{grid-template-columns:1fr}
+.stack{display:flex;flex-direction:column;gap:6px;min-width:0}
+.alt{border:1px dashed var(--line);background:none;border-radius:8px;padding:6px 10px;text-align:left;font-size:.85rem;color:var(--ink)}
+.alt span{color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;margin-right:4px}
+.alt i{color:var(--muted);font-style:normal}
+.free{background:var(--bg);display:flex;align-items:center;gap:12px;padding:10px 14px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);font-size:.85rem}
+.fx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.free b{font-family:var(--f-display);font-weight:600;color:var(--ink);font-size:1rem}
+.free .live{align-self:flex-start;margin-bottom:4px;font:700 .68rem/1 var(--f-body);padding:4px 7px;border-radius:999px;background:var(--now);color:#fff}
+.talk,.fixed,.free{position:relative;z-index:1} /* the now line runs behind cards, visible only in the gaps */
+.note{color:var(--muted);font-size:.85rem;margin-top:28px}
+.note a{color:inherit}
+.chg{align-self:flex-start;font:700 .7rem/1 var(--f-body);padding:4px 8px;border-radius:999px;color:var(--ink);background:color-mix(in srgb,var(--warn) 28%,var(--surface))}
+.banner{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;margin-bottom:12px;padding:12px 14px;border-radius:10px;background:var(--pick-soft);color:var(--ink);font-size:.9rem}
+.banner.warn{background:color-mix(in srgb,var(--warn) 18%,var(--surface));border:1px solid color-mix(in srgb,var(--warn) 45%,transparent)}
+.banner small,.banner .was{color:var(--muted)}
+.banner-btns{display:flex;gap:8px;flex-wrap:wrap}
+.is-shared .fab,.is-shared .tools{display:none}
+.upd{position:fixed;z-index:20;right:max(16px,env(safe-area-inset-right,0px));bottom:max(16px,calc(env(safe-area-inset-bottom,0px) + 8px));
+  height:40px;padding:0 14px;border:0;border-radius:999px;background:var(--warn);color:#1a1200;font-weight:700;font-size:.85rem;box-shadow:0 6px 20px rgb(0 0 0/.22)}
+
+/* description modal */
+dialog{width:min(600px,calc(100% - 32px));max-height:min(86dvh,900px);padding:0;border:0;border-radius:16px;background:var(--surface);color:var(--ink);box-shadow:0 20px 60px rgb(0 0 0/.25)}
+dialog[open]{animation:pop .24s cubic-bezier(.2,.8,.3,1)}
+dialog[open]::backdrop{animation:fade .24s ease}
+dialog.closing{animation:pop .18s ease-in reverse forwards}
+dialog.closing::backdrop{animation:fade .18s ease-in reverse forwards}
+dialog:focus{outline:none}
+dialog::backdrop{background:rgb(10 12 25/.45)}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.m-in{padding:20px 22px 24px;display:flex;flex-direction:column;gap:12px}
+.m-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.x{flex:none;width:34px;height:34px;border:0;border-radius:50%;background:var(--bg);font-size:1rem}
+dialog .title{font-size:1.35rem}
+dialog .av{width:44px;height:44px}
+dialog .name{font-size:.95rem}
+dialog .co{font-size:.82rem;white-space:normal}
+.desc{font-size:.95rem;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+.desc p{margin:0 0 10px}
+
+@media (max-width:760px){.nowline{display:none}.talks{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>My DevFest Karlsruhe</h1>
+      <p class="sub"><b class="day" id="day">Sat 7 Nov</b> · Tap a talk for details. Picks stay in this browser.</p>
+    </div>
+    <div class="tools">
+      <span class="count" id="count"></span>
+      <button class="btn" id="share">Share my plan</button>
+      <button class="btn" id="clear">Clear</button>
+    </div>
+  </header>
+  <main id="sched"></main>
+  <p class="note">Synced from devfestka.de · <span id="synced"></span> · checked every 10 min on event day. <a href="https://devfestka.de/schedule" target="_blank" rel="noopener">Official schedule</a></p>
+</div>
+<button class="fab" id="fab" aria-label="Switch view"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h16l-5-5"/><path d="M20 15H4l5 5"/></svg><span class="win"><span class="track"><span>All talks</span><span id="fabmine">My picks</span></span></span></button>
+<button class="upd" id="upd" hidden>Schedule updated · Reload</button>
+<dialog id="modal" tabindex="-1"><div class="m-in" id="m-in"></div></dialog>
+
+<script>
+const E=__DATA__, META=__META__;
+const EVENT_DATE=new Date(2026,10,7);
+const ROOMS=META.rooms;
+const ST=["","going","interested"], ST_LABEL=["Not set","Going","Interested"];
+const TAG={"AI":"ai","Web":"web","Mobile":"mobile","Mobile Development":"mobile","Security":"sec","Java":"java","DevOps":"ops","UX":"ux","Clean Code":"clean","Architecture":"arch"};
+const KEY="devfestka-2026-ranks", VKEY="devfestka-2026-view", SKEY="devfestka-2026-seen";
+const min=s=>{const[h,m]=s.split(":");return h*60+ +m};
+const hm=m=>`${String(Math.floor(m/60)).padStart(2,"0")}:${String(m%60).padStart(2,"0")}`;
+const dur=d=>d<60?`${d} min`:`${Math.floor(d/60)} h`+(d%60?` ${d%60} min`:"");
+const short=d=>d<60?`${d} min`:d%60&&d<600?`${Math.floor(d/60)} h ${d%60}`:`${Math.round(d/60)} h`;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}};
+const store=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
+const BY_ID=Object.fromEntries(E.filter(e=>e.id).map(e=>[e.id,e]));
+const roomOf=e=>e.c<0?(e.k==="key"?"Keynote · Audimax":"Audimax"):ROOMS[e.c];
+const snap=e=>({s:e.s,r:roomOf(e),t:e.t}); // what the talk looked like when you picked it
+
+// ponytail: picks used to be keyed by "time-room"; map those once to talk ids. Delete after the event.
+const LEGACY={"10:00--1":["kv_lc","Trust by Design: Building Secure AI with Google Cloud"],"11:00-0":["sl","Chatless-AI"],"11:00-1":["np","Java 27"],"11:00-2":["gm","A Developer's Guide the CRA"],
+ "12:00-0":["ck","Developers under attack"],"12:00-1":["mb","Beyond the Chatbot"],"12:00-2":["fs","Was ihr über Git nicht wisst"],"14:00-0":["christianl","What’s New in Web"],"14:00-1":["mis","UX & Devs"],
+ "14:00-2":["rh_ms","Agentic UI"],"15:00-0":["mr","The Impact of AI on Open Source Teams"],"15:00-1":["af","Ein Modell, viele Zielplattformen"],"15:00-2":["jr","Loop Engineering"],
+ "16:00-0":["ds","Codebase-Detox: Mit KI das Chaos beseitigen und mit Quality Gates den Standard halten"],"16:00-1":["krc","The Web After the AI Revolution"],"16:00-2":["ts","The Cross-Origin Storage API"],
+ "17:20-0":["lr","Sicherheitsnetze für den Einsatz von Coding Agenten"],"17:20-1":["jp","Mutanten unter uns"],"17:20-2":["mreuter","Was passiert eigentlich mit meiner Webseite"]};
+let picks={}, seen=load(SKEY,{});
+for(const [k,v] of Object.entries(load(KEY,{}))){
+  const val=v===1?"going":(v===2||v===3)?"interested":v;
+  const old=LEGACY[k];
+  if(old){picks[old[0]]=val; const [,s,c]=k.match(/^(\d\d:\d\d)-(-?\d)$/); seen[old[0]]??={s,r:+c<0?"Keynote · Audimax":["Audimax","Raum 1","Raum 2"][+c],t:old[1]}}
+  else picks[k]=val;
+}
+for(const k in picks) if(!seen[k]&&BY_ID[k]) seen[k]=snap(BY_ID[k]);
+const save=()=>{store(KEY,picks);store(SKEY,seen)};
+save();
+let view=load(VKEY,"all");
+
+// A shared plan arrives as #p=<going ids>~<interested ids>; it is shown read-only and never written to your picks.
+let shared=null;
+function readHash(){
+  const m=location.hash.match(/^#p=([a-z0-9_.~]*)$/i);
+  if(!m){shared=null;return}
+  const [g="",i=""]=m[1].split("~"); shared={};
+  g.split(".").filter(Boolean).forEach(k=>shared[k]="going");
+  i.split(".").filter(Boolean).forEach(k=>shared[k]??="interested");
+}
+const encode=p=>{const by=s=>Object.keys(p).filter(k=>p[k]===s&&BY_ID[k]).join(".");const i=by("interested");return by("going")+(i?"~"+i:"")};
+readHash();
+
+const cur=()=>shared||picks;
+const st=e=>e.id?cur()[e.id]||"":"";
+const byStatus=(a,b)=>ST.indexOf(st(a))-ST.indexOf(st(b)); // going before interested
+const moved=e=>{if(shared||!st(e))return null; const v=seen[e.id]; return v&&(v.s!==e.s||v.r!==roomOf(e))?v:null};
+const gone=()=>shared?[]:Object.keys(picks).filter(k=>!BY_ID[k]);
+
+const SLOTS=[]; for(const e of E){const last=SLOTS.at(-1); last&&last.s===e.s?last.items.push(e):SLOTS.push({s:e.s,e:e.e,items:[e]})}
+const pickable=sl=>["talk","key"].includes(sl.items[0].k);
+const choiceSlots=SLOTS.filter(pickable);
+
+function dayOffset(now){return Math.round((new Date(now.getFullYear(),now.getMonth(),now.getDate())-EVENT_DATE)/864e5)}
+function dayLabel(now){
+  const rel={"-1":"Tomorrow","0":"Today","1":"Yesterday"}[dayOffset(now)];
+  return (rel?rel+" · ":"")+"Sat 7 Nov"+(rel?"":" 2026");
+}
+
+const initials=n=>n.replace(/^Dr\. /,"").split(" ").map(w=>w[0]).slice(0,2).join("");
+const people=e=>`<div class="people">${e.who.map(([n,co,img])=>`<div class="person">
+  <span class="av">${initials(n)}<img src="${img}" alt="" onerror="this.remove()"></span>
+  <span class="who"><span class="name">${esc(n)}</span><span class="co">${esc(co)}</span></span></div>`).join("")}</div>`;
+const tags=e=>e.g?`<div class="tags">${e.g.split(", ").map(g=>`<span class="tag" style="--c:var(--t-${TAG[g]||"other"})">${esc(g)}</span>`).join("")}</div>`:"<span></span>";
+const en=e=>e.l==="EN"?`<span class="en" title="Talk in English">EN</span>`:"";
+const status=e=>{if(shared)return "";const i=ST.indexOf(st(e));return `<button class="status" data-cycle="${e.id}" data-i="${i}" aria-label="Status: ${ST_LABEL[i]}. Tap to change.">
+  <span class="win"><span class="track" style="transform:translateY(${-26*i}px)">${ST_LABEL.map(l=>`<span>${l}</span>`).join("")}</span></span></button>`};
+const movedNote=e=>{const v=moved(e);return v?`<span class="chg">Moved · was ${v.s} · ${esc(v.r)}</span>`:""};
+
+function card(e,dim){
+  const s=st(e);
+  return `<article class="talk${dim&&!s?" dim":""}" data-st="${s}" data-open="${e.id}" tabindex="0">
+    <div class="top"><span class="room">${roomOf(e)}</span>${en(e)}</div>
+    ${movedNote(e)}
+    <h3 class="title">${esc(e.t)}</h3>
+    ${people(e)}
+    <div class="foot">${tags(e)}${status(e)}</div>
+  </article>`;
+}
+
+// Rows: {s,e (minutes), kind:"talks"|"fixed"|"free", ...}. "All" = every slot; "mine" = picked slots, plenaries, and collapsed free time.
+function rowsAll(){
+  return SLOTS.map(sl=>({s:min(sl.s),e:min(sl.e),kind:pickable(sl)?"talks":"fixed",items:sl.items,show:sl.items}));
+}
+function rowsMine(){
+  const rows=[]; let run=[], prevEnd=null;
+  const flush=nextStart=>{
+    if(!run.length) return;
+    if(run.every(sl=>sl.items[0].k==="brk")) run.forEach(sl=>rows.push({s:min(sl.s),e:min(sl.e),kind:"fixed",items:sl.items}));
+    else rows.push({s:prevEnd??min(run[0].s),e:nextStart??min(run.at(-1).e),kind:"free",brks:run.filter(sl=>sl.items[0].k==="brk")});
+    run=[];
+  };
+  for(const sl of SLOTS){
+    const k=sl.items[0].k;
+    if(k==="plen"){flush(min(sl.s));rows.push({s:min(sl.s),e:min(sl.e),kind:"fixed",items:sl.items});prevEnd=min(sl.e);continue}
+    const picked=pickable(sl)?sl.items.filter(st).sort(byStatus):[];
+    if(picked.length){flush(min(sl.s));rows.push({s:min(sl.s),e:min(sl.e),kind:"talks",items:sl.items,show:picked});prevEnd=min(sl.e)}
+    else run.push(sl);
+  }
+  flush(null);
+  return rows;
+}
+
+function render(){
+  const now=new Date(), m=now.getHours()*60+now.getMinutes(), today=dayOffset(now)===0;
+  const mine=view==="mine"||!!shared, rows=mine?rowsMine():rowsAll();
+  const next=rows.find(r=>r.kind==="talks"&&r.s>m);
+  const range=r=>`<span class="ftime"><span>${hm(r.s)}</span><span>${hm(r.e)}</span></span>`;
+
+  let top="";
+  if(shared){
+    const n=Object.keys(shared).filter(k=>BY_ID[k]).length;
+    top+=`<div class="banner"><div><b>Shared plan</b> · ${n} talk${n===1?"":"s"} · read-only, your own picks are untouched</div>
+      <div class="banner-btns"><button class="btn" id="adopt">Use as my plan</button><button class="btn" id="unshare">Back to my plan</button></div></div>`;
+  }
+  for(const k of gone()){
+    const v=seen[k]||{t:"A talk you picked",s:"?",r:"?"};
+    top+=`<div class="banner warn"><div><b>No longer in the schedule:</b> ${esc(v.t)} <span class="was">(was ${v.s} · ${esc(v.r)})</span><br><small>Cancelled or replaced on devfestka.de.</small></div>
+      <div class="banner-btns"><button class="btn" data-drop="${esc(k)}">Remove</button></div></div>`;
+  }
+
+  sched.innerHTML=top+rows.map(r=>{
+    const past=today&&r.e<=m?" past":"";
+    if(r.kind==="talks"){
+      let body;
+      if(mine){
+        const [main,...alts]=r.show;
+        body=`<div class="stack"><div class="talks one">${card(main,false)}</div>
+          ${alts.map(a=>`<button class="alt" data-open="${a.id}"><span>or</span> ${esc(a.t)} <i>· ${roomOf(a)}</i></button>`).join("")}</div>`;
+      } else {
+        const anyGoing=r.items.some(e=>st(e)==="going");
+        body=`<div class="talks${r.items.length===1?" one":""}" style="--cols:${r.items.length}">${r.items.map(e=>card(e,anyGoing)).join("")}</div>`;
+      }
+      return `<section class="slot${past}" data-s="${r.s}" data-e="${r.e}" data-talk>
+        <div class="head"><b>${hm(r.s)}</b><span>· ${dur(r.e-r.s)}</span>${r.s<=m&&m<r.e?`<span class="left">${short(r.e-m)} left</span>`:r===next?`<span class="soon">starts in ${short(r.s-m)}</span>`:""}</div>
+        <div class="body">${body}</div><div class="end">${hm(r.e)}</div></section>`;
+    }
+    let body;
+    if(r.kind==="free"){
+      const nowIn=r.s<=m&&m<r.e;
+      body=`<div class="free">${range(r)}<div class="fx">${nowIn?`<span class="live">Now · free until ${hm(r.e)}</span>`:""}<b>Free · ${dur(r.e-r.s)}</b>
+        ${r.brks.length?`<span>includes ${r.brks.map(sl=>`${esc(sl.items[0].t)} ${sl.s}–${sl.e}`).join(", ")}</span>`:""}</div></div>`;
+    } else {
+      const f=r.items[0];
+      body=`<div class="fixed ${f.k==="brk"?"":"plenary"}">${range(r)}<span><b>${esc(f.t)}</b> · ${esc(f.sp)}</span></div>`;
+    }
+    return `<section class="slot${past}" data-s="${r.s}" data-e="${r.e}"><div class="body">${body}</div></section>`;
+  }).join("");
+  if(mine&&!rows.some(r=>r.kind==="talks")) sched.insertAdjacentHTML("beforeend",`<p class="empty">No picks yet. Switch to <b>All talks</b> and mark talks as Going or Interested.</p>`);
+
+  // Now marker: dot on the timeline (top of the next row when between rows), "x min left" on the running talk row, a line behind the cards on wide screens.
+  const secs=[...sched.querySelectorAll(".slot")];
+  const host=secs.find(s=>m<+s.dataset.e)||secs.at(-1);
+  if(host){
+    const pct=m>=+host.dataset.e?1:Math.max(0,(m-host.dataset.s)/(host.dataset.e-host.dataset.s));
+    const bd=host.querySelector(".body");
+    const y=bd.offsetTop+pct*bd.offsetHeight;
+    host.insertAdjacentHTML("beforeend",`<i class="nowdot" id="now" style="top:${y}px"></i><div class="nowline" style="top:${y}px"></div>`);
+  }
+
+  document.body.dataset.view=mine?"mine":"all";
+  document.body.classList.toggle("is-shared",!!shared);
+  day.textContent=dayLabel(now);
+  const n=choiceSlots.filter(sl=>sl.items.some(e=>picks[e.id])).length;
+  count.textContent=`${n}/${choiceSlots.length} slots picked`;
+  fabmine.textContent=`My picks · ${n}`;
+  fab.querySelector(".track").style.transform=`translateY(${view==="mine"?-20:0}px)`; // label slides like the status switch
+}
+
+function cycle(btn){
+  const k=btn.dataset.cycle, i=(ST.indexOf(picks[k]||"")+1)%3;
+  if(ST[i]){picks[k]=ST[i]; seen[k]=snap(BY_ID[k])} else {delete picks[k]; delete seen[k]}
+  save();
+  // slide this control first, then re-render once the slide has played
+  btn.dataset.i=i; btn.querySelector(".track").style.transform=`translateY(${-26*i}px)`;
+  setTimeout(()=>{render(); if(modal.open) fillModal(k)},260);
+}
+
+function fillModal(k){
+  const e=BY_ID[k];
+  document.getElementById("m-in").innerHTML=`
+    <div class="m-top"><span class="room">${e.s}–${e.e} · ${roomOf(e)}</span><span style="display:flex;gap:10px;align-items:center">${en(e)}<button class="x" id="m-x" aria-label="Close">✕</button></span></div>
+    ${movedNote(e)}
+    <h2 class="title">${esc(e.t)}</h2>
+    ${people(e)}
+    <div class="foot" style="margin-top:0">${tags(e)}${status(e)}</div>
+    <div class="desc">${e.d?e.d.split("\n").map(p=>`<p>${esc(p)}</p>`).join(""):"<p>No description on devfestka.de yet.</p>"}</div>`;
+}
+function openModal(k){
+  fillModal(k); modal.showModal(); modal.focus(); modal.scrollTop=0; // focus the dialog, not the ✕
+  if(moved(BY_ID[k])){seen[k]=snap(BY_ID[k]); save()} // seen the move: clear the note from the next render on
+}
+function closeModal(){
+  const done=()=>{modal.classList.remove("closing");modal.close();render()};
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches){done();return}
+  modal.classList.add("closing"); setTimeout(done,170);
+}
+
+let adoptArmed=null;
+sched.addEventListener("click",ev=>{
+  const c=ev.target.closest("[data-cycle]"); if(c){cycle(c);return}
+  const d=ev.target.closest("[data-drop]"); if(d){delete picks[d.dataset.drop]; delete seen[d.dataset.drop]; save(); render(); return}
+  if(ev.target.closest("#unshare")){history.replaceState(null,"",location.pathname); shared=null; render(); return}
+  const a=ev.target.closest("#adopt");
+  if(a){
+    // replacing your own picks needs a second tap
+    if(!adoptArmed){a.textContent="Tap again to replace yours";adoptArmed=setTimeout(()=>{adoptArmed=null;render()},3000);return}
+    clearTimeout(adoptArmed); adoptArmed=null;
+    picks={...shared}; seen={}; for(const k in picks) if(BY_ID[k]) seen[k]=snap(BY_ID[k]);
+    save(); view="mine"; store(VKEY,view); history.replaceState(null,"",location.pathname); shared=null; render(); return;
+  }
+  const o=ev.target.closest("[data-open]"); if(o) openModal(o.dataset.open);
+});
+sched.addEventListener("keydown",ev=>{if(ev.key==="Enter"&&ev.target.dataset.open) openModal(ev.target.dataset.open)});
+modal.addEventListener("click",ev=>{
+  const c=ev.target.closest("[data-cycle]"); if(c){cycle(c);return}
+  if(ev.target===modal||ev.target.closest("#m-x")) closeModal();
+});
+modal.addEventListener("cancel",ev=>{ev.preventDefault();closeModal()});
+addEventListener("hashchange",()=>{readHash();render()});
+
+fab.addEventListener("click",()=>{
+  if(shared){history.replaceState(null,"",location.pathname); shared=null}
+  view=view==="mine"?"all":"mine"; store(VKEY,view);
+  render(); document.getElementById("now")?.scrollIntoView({block:"center",behavior:"smooth"});
+});
+let armed=null; // Clear needs a second tap so a stray tap at the event doesn't wipe the plan
+clear.onclick=()=>{
+  if(!armed){clear.textContent="Tap again to clear";armed=setTimeout(()=>{armed=null;clear.textContent="Clear"},3000);return}
+  clearTimeout(armed);armed=null;clear.textContent="Clear";picks={};seen={};save();render();
+};
+
+// Share: the link carries the picks (#p=…); the text is the readable timeline. Native share sheet where there is one, clipboard otherwise.
+share.onclick=async()=>{
+  const code=encode(picks);
+  if(!code){share.textContent="Pick talks first";setTimeout(()=>share.textContent="Share my plan",1500);return}
+  const url=location.origin+location.pathname+"#p="+code;
+  const lines=choiceSlots.map(sl=>{
+    const mk=sl.items.filter(e=>picks[e.id]).sort((a,b)=>ST.indexOf(picks[a.id])-ST.indexOf(picks[b.id]));
+    return mk.length?`${sl.s}  ${mk.map((e,i)=>(i?"or ":"")+`${e.t} (${roomOf(e)})`).join(" / ")}`:null;
+  }).filter(Boolean);
+  const text=`My DevFest Karlsruhe plan\n\n${lines.join("\n")}`;
+  try{
+    if(navigator.share){await navigator.share({title:"My DevFest Karlsruhe plan",text,url});return}
+    await navigator.clipboard.writeText(text+"\n\n"+url); share.textContent="Copied";
+  }catch(err){if(err.name==="AbortError")return; share.textContent="Couldn't share"}
+  setTimeout(()=>share.textContent="Share my plan",1500);
+};
+
+// The schedule is re-scraped on GitHub during the event; an open page checks for a newer version and offers a reload.
+async function checkUpdate(){
+  try{
+    const html=await (await fetch("./",{cache:"no-store"})).text();
+    const h=html.match(/"hash": "([0-9a-f]+)"/);
+    if(h&&h[1]!==META.hash) upd.hidden=false;
+  }catch{} // offline: keep what we have
+}
+upd.onclick=()=>location.reload();
+synced.textContent=new Date(META.synced).toLocaleString("en-GB",{weekday:"short",hour:"2-digit",minute:"2-digit",hour12:false});
+
+render();
+document.getElementById("now")?.scrollIntoView({block:"center"});
+setInterval(render,30e3);
+setInterval(checkUpdate,5*60e3);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){render();checkUpdate()}});
+addEventListener("resize",()=>render());
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
+</script>
+</body>
+</html>

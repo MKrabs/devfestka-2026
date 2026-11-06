@@ -6,11 +6,11 @@
 <title>My DevFest Karlsruhe</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=JetBrains+Mono:wght@500&display=swap">
 <style>
-/* Layout: a vertical timeline of slots; a ruler on the left (start top, end bottom, duration in the middle), the slot's talks on the right. */
+/* Layout: one continuous timeline down the left edge; each slot = start time + duration, its talks, end time. */
 :root{
   --bg:#f3f4f8; --surface:#ffffff; --ink:#151a33; --muted:#5b6283; --line:#d9dcea;
   --pick:#1f4bd8; --pick-ink:#ffffff; --pick-soft:#e3e9ff; --brk:#eceef5; --now:#e0322c;
-  --t-ai:#7c4dff; --t-web:#0f9d8a; --t-mobile:#2b8fd6; --t-sec:#e5541b; --t-java:#c98a00; --t-ops:#3a9d3a; --t-ux:#d6408f; --t-clean:#4b6a8f; --t-arch:#8a6d4b;
+  --t-ai:#7c4dff; --t-web:#0f9d8a; --t-mobile:#2b8fd6; --t-sec:#e5541b; --t-java:#c98a00; --t-ops:#3a9d3a; --t-ux:#d6408f; --t-clean:#4b6a8f; --t-arch:#8a6d4b; --t-other:#7a7f99; --warn:#c77800;
   --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
   --f-body:"Atkinson Hyperlegible",ui-sans-serif,system-ui,sans-serif;
   --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
@@ -18,7 +18,7 @@
 @media (prefers-color-scheme:dark){:root{
   --bg:#0f1222; --surface:#181c33; --ink:#e8eaf6; --muted:#9aa0c3; --line:#2b3052;
   --pick:#7d9bff; --pick-ink:#0f1222; --pick-soft:#232c55; --brk:#151933; --now:#ff5d55;
-  --t-ai:#a88bff; --t-web:#3cc7b3; --t-mobile:#62b3f0; --t-sec:#ff8a5c; --t-java:#f0b93a; --t-ops:#6cc96c; --t-ux:#f07ab6; --t-clean:#8fa9c9; --t-arch:#c4a27c;
+  --t-ai:#a88bff; --t-web:#3cc7b3; --t-mobile:#62b3f0; --t-sec:#ff8a5c; --t-java:#f0b93a; --t-ops:#6cc96c; --t-ux:#f07ab6; --t-clean:#8fa9c9; --t-arch:#c4a27c; --t-other:#a0a5c0; --warn:#ffb547;
   color-scheme:dark}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 var(--f-body)}
@@ -37,7 +37,7 @@ button{font:inherit;cursor:pointer;color:inherit}
 
 
 /* talk cards */
-.talks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:1fr;gap:10px}
+.talks{display:grid;grid-template-columns:repeat(var(--cols,3),minmax(0,1fr));grid-auto-rows:1fr;gap:10px}
 .talk{position:relative;display:flex;flex-direction:column;gap:8px;padding:12px 14px;border:1px solid var(--line);background:var(--surface);color:var(--ink);
   border-radius:10px;min-width:0;cursor:pointer;transition:background .2s,border-color .2s,opacity .2s}
 .talk:hover{border-color:var(--pick)}
@@ -80,19 +80,18 @@ body[data-view="mine"] .status .track span{color:var(--ink)}
 .keynote{cursor:pointer;display:flex;flex-direction:column;gap:8px;padding:12px 14px;align-self:stretch}
 .past{opacity:.45}
 /* slot = time header, timeline body (thin ruler on the left, cards beside it), end time */
-.slot{position:relative;padding-block:12px;border-top:1px solid var(--line)}
+.slot{position:relative;padding-block:12px;padding-left:14px;border-top:1px solid var(--line)}
+.slot::before{content:"";position:absolute;left:-7px;top:-1px;bottom:0;width:9px;border-right:2px solid var(--line);
+  background:repeating-linear-gradient(to bottom,var(--line) 0 1px,transparent 1px 9px) left/7px 100% repeat-y} /* one unbroken line through every row; ticks hang left into the margin */
 .head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font:500 .85rem/1 var(--f-mono);color:var(--muted);margin-bottom:8px;font-variant-numeric:tabular-nums}
 .head b{font-weight:500;color:var(--ink)}
 .end{font:500 .8rem/1 var(--f-mono);color:var(--muted);margin-top:8px;opacity:.8}
-.body{position:relative;padding-left:14px}
-.body::before{content:"";position:absolute;left:-7px;top:0;bottom:0;width:9px;border-right:2px solid var(--line);
-  background:repeating-linear-gradient(to bottom,var(--line) 0 1px,transparent 1px 9px) left/7px 100% no-repeat} /* ticks hang left of the line, into the margin */
+.body{position:relative}
 .ftime{flex:none;display:flex;flex-direction:column;font:500 .74rem/1.25 var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
 .ftime span:last-child{opacity:.75}
-.soon{font:700 .7rem/1 var(--f-body);padding:4px 8px;border-radius:999px;background:var(--ink);color:var(--bg)}
+.soon,.left{font:700 .7rem/1 var(--f-body);padding:4px 8px;border-radius:999px;background:var(--ink);color:var(--bg)}
+.left{background:var(--now);color:#fff}
 .nowdot{position:absolute;left:-5px;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:var(--now);box-shadow:0 0 0 3px var(--bg);z-index:4;pointer-events:none}
-.nowpill{position:absolute;left:-16px;margin-top:-38px;z-index:4;display:flex;flex-direction:column;align-items:center;padding:4px 7px;border-radius:8px;background:var(--now);color:#fff;font:700 .72rem/1.05 var(--f-body);pointer-events:none;box-shadow:0 0 0 2px var(--bg)}
-.nowpill small{font-size:.6rem;font-weight:400;opacity:.9}
 .nowline{position:absolute;left:2px;right:0;height:0;border-top:2px solid var(--now);z-index:0;pointer-events:none}
 .fab{position:fixed;z-index:20;left:max(16px,env(safe-area-inset-left,0px));bottom:max(16px,calc(env(safe-area-inset-bottom,0px) + 8px));
   display:flex;align-items:center;gap:6px;height:40px;padding:0 14px 0 10px;border:0;border-radius:999px;background:var(--ink);color:var(--bg);
@@ -112,6 +111,15 @@ body[data-view="mine"] .status .track span{color:var(--ink)}
 .free .live{align-self:flex-start;margin-bottom:4px;font:700 .68rem/1 var(--f-body);padding:4px 7px;border-radius:999px;background:var(--now);color:#fff}
 .talk,.fixed,.free{position:relative;z-index:1} /* the now line runs behind cards, visible only in the gaps */
 .note{color:var(--muted);font-size:.85rem;margin-top:28px}
+.note a{color:inherit}
+.chg{align-self:flex-start;font:700 .7rem/1 var(--f-body);padding:4px 8px;border-radius:999px;color:var(--ink);background:color-mix(in srgb,var(--warn) 28%,var(--surface))}
+.banner{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;margin-bottom:12px;padding:12px 14px;border-radius:10px;background:var(--pick-soft);color:var(--ink);font-size:.9rem}
+.banner.warn{background:color-mix(in srgb,var(--warn) 18%,var(--surface));border:1px solid color-mix(in srgb,var(--warn) 45%,transparent)}
+.banner small,.banner .was{color:var(--muted)}
+.banner-btns{display:flex;gap:8px;flex-wrap:wrap}
+.is-shared .fab,.is-shared .tools{display:none}
+.upd{position:fixed;z-index:20;right:max(16px,env(safe-area-inset-right,0px));bottom:max(16px,calc(env(safe-area-inset-bottom,0px) + 8px));
+  height:40px;padding:0 14px;border:0;border-radius:999px;background:var(--warn);color:#1a1200;font-weight:700;font-size:.85rem;box-shadow:0 6px 20px rgb(0 0 0/.22)}
 
 /* description modal */
 dialog{width:min(600px,calc(100% - 32px));max-height:min(86dvh,900px);padding:0;border:0;border-radius:16px;background:var(--surface);color:var(--ink);box-shadow:0 20px 60px rgb(0 0 0/.25)}
@@ -146,37 +154,70 @@ dialog .co{font-size:.82rem;white-space:normal}
     </div>
     <div class="tools">
       <span class="count" id="count"></span>
-      <button class="btn" id="copy">Copy my plan</button>
+      <button class="btn" id="share">Share my plan</button>
       <button class="btn" id="clear">Clear</button>
     </div>
   </header>
   <main id="sched"></main>
-  <p class="note">Source: devfestka.de schedule, talks and speakers pages, fetched 6 Nov 2026.</p>
+  <p class="note">Synced from devfestka.de · <span id="synced"></span> · checked every 10 min on event day. <a href="https://devfestka.de/schedule" target="_blank" rel="noopener">Official schedule</a></p>
 </div>
 <button class="fab" id="fab" aria-label="Switch view"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h16l-5-5"/><path d="M20 15H4l5 5"/></svg><span class="win"><span class="track"><span>All talks</span><span id="fabmine">My picks</span></span></span></button>
+<button class="upd" id="upd" hidden>Schedule updated · Reload</button>
 <dialog id="modal" tabindex="-1"><div class="m-in" id="m-in"></div></dialog>
 
 <script>
-const E=[{"s": "09:00", "e": "09:35", "c": -1, "t": "Registrierung & Frühstück", "k": "brk", "sp": "Foyer"}, {"s": "09:40", "e": "09:55", "c": -1, "t": "Welcome Notes", "k": "plen", "sp": "Audimax"}, {"s": "10:00", "e": "10:45", "c": -1, "t": "Trust by Design: Building Secure AI with Google Cloud", "k": "key", "sp": "Katya Vinnichenko (Google), Luiz Carneiro (smapiot GmbH)", "who": [["Katya Vinnichenko", "Google", "speakers/kv.webp"], ["Luiz Carneiro", "smapiot GmbH", "speakers/lc.webp"]], "l": "EN", "g": "Security, AI", "d": "Luiz Carneirosmapiot GmbH\nIn 2026, just building AI apps isn't enough anymore – they also have to be secure and compliant. With regulations like the EU AI Act now in full effect, security can no longer be an afterthought. But how do you meet strict legal rules without slowing down your developers?\nIn this session, we will talk about both legal aspects and architecture. We will look at major AI vulnerabilities like prompt injection and data leaks, and map out a practical, 3-layer security framework using Google Cloud. You'll learn how to block threats with Cloud Armor, filter AI inputs and outputs in real time using Model Armor, and protect user privacy with Sensitive Data Protection. Join to find out how to build a complete protective shell around your apps."}, {"s": "11:00", "e": "11:45", "c": 0, "t": "Chatless-AI – Realtime-Sprachinterfaces für Web und Mobile entwickeln", "k": "talk", "sp": "Sascha Lehmann · Thinktecture AG", "who": [["Sascha Lehmann", "Thinktecture AG", "speakers/sl.webp"]], "l": "DE", "g": "AI, Web, Mobile", "d": "Mit Realtime-Sprachmodellen wie GPT-realtime oder Gemini-Live entsteht eine neue Generation von Interfaces: Sprache wird zum sofort reagierenden, latenzarmen Interaktionskanal – ohne Prompting, ohne Wartezeiten, hands-free.\nIn diesem Talk zeigt Sascha Lehmann, wie Realtime-Modelle technisch funktionieren, wie man Kontextgrenzen, Rollen und Sicherheit zuverlässig kontrolliert und wie sich Realtime-AI gezielt in Web- und Mobile-Anwendungen integrieren lässt – von Architektur über Kostenoptimierung bis hin zur UX, die Nutzer transparent durch den Dialog führt."}, {"s": "11:00", "e": "11:45", "c": 1, "t": "Java 27 - Bessere Sprache, Bessere APIs, Bessere Laufzeit", "k": "talk", "sp": "Nicolai Parlog · Oracle", "who": [["Nicolai Parlog", "Oracle", "speakers/np.webp"]], "l": "DE", "g": "Java", "d": "Java 25 ist das jüngste Release mit Langzeitunterstützung und es kam mit jeder Menge Features. Aber seitdem sind auch Java 26 und 27 bereits erschienen und haben noch ein wenig draufgelegt:\n* von Modulimporten zu besserem Pattern Matching\n* von Structured Concurrency zu HTTP/3\n* von einer einfacheren Main-Methode zum direkten Start von Quellcode\n* von besserer Performance zu quantencomputer-resistenter Verschlüsselung\nOb neu, verbessert oder finalisiert - es gibt jede Menge Features in der Sprache, der Standardbibliothek und der Laufzeit zu besprechen. Also machen wir genau das!"}, {"s": "11:00", "e": "11:45", "c": 2, "t": "A Developer's Guide the CRA", "k": "talk", "sp": "Grégoire Mercier · bluehands", "who": [["Grégoire Mercier", "bluehands", "speakers/gm.webp"]], "l": "DE", "g": "Security", "d": "Der Cyber Resilience Act, kurz CRA, betrifft jede Entwicklerin und jeden Entwickler, die Software entwickeln oder verwalten, die auf dem EU Markt landet. Dieser Vortrag gibt einen Überblick aus Entwicklersicht und beantwortet drei Fragen.\nErstens, was muss ich als Entwickler beachten, um CRA compliant zu sein. Bereits seit dem 11. September 2026 muss ich aktiv ausgenutzte Schwachstellen und schwerwiegende Sicherheitsvorfälle innerhalb enger Fristen melden. Ab Dezember 2027 kommen dann die eigentlichen Produktanforderungen hinzu, etwa Security by Design und die technische Dokumentation, die ich bis dahin umgesetzt haben muss.\nZweitens, wie sieht die Umsetzung des CRA im Alltag konkret aus. Wir übersetzen die Anforderungen in Aufgaben im Entwicklungsprozess, ohne uns in Einzelheiten zu verlieren.\nDrittens, wie kann KI bei dieser Aufgabe helfen. Wir werfen einen kurzen Blick darauf, wo KI gestützte Werkzeuge heute bereits unterstützen können, und wo KI generierter Code selbst zu einer neuen Fragestellung im Rahmen des CRA wird.\nAm Ende dieses Vortrags wissen die Teilnehmenden, was für sie persönlich zu tun ist und wie sich das in ihren Entwicklungsalltag einfügt."}, {"s": "12:00", "e": "12:45", "c": 0, "t": "Developers under attack - how to protect yourself", "k": "talk", "sp": "Christian Kühn · dmTECH", "who": [["Christian Kühn", "dmTECH", "speakers/ck.webp"]], "l": "EN", "g": "Security", "d": "Supply chain attacks are increasingly focusing on developers and automation tools.\nIn early 2025, someone infected a widely used security tool, then used the knowledge from that attack to subsequently infect npm- and python packages to steal developer credentials.\nThe talk will show how these kinds of attacks worked and how developers can protect themselves (and their assets) against similar attacks and why ai might or might not be helpful in these scenarios."}, {"s": "12:00", "e": "12:45", "c": 1, "t": "Beyond the Chatbot: Client-Side AI mit WebGPU, WebNN & In-Browser Inference", "k": "talk", "sp": "Marcel Bagemihl · Consid", "who": [["Marcel Bagemihl", "Consid", "speakers/mb.webp"]], "l": "DE", "g": "AI, Web", "d": "Jedes KI-Feature wird heute auf dieselbe Weise ausgeliefert: Ein Chat-Fenster wird notdürftig an die Seite der App geklatscht. Chat ist die Kommandozeile der KI-Ära – mächtig, aber faul. Er zwingt Nutzer dazu, Absichten mühsam zu formulieren, reißt sie aus dem Flow und verschleiert, was das Produkt eigentlich kann.\nEs geht besser – und die Lösung steckt bereits im Browser, für den ihr ohnehin entwickelt. Dank WebGPU, WebAssembly und dem aufkommenden WebNN-Standard können moderne Browser vollwertige ML-Modelle bei interaktiven Bildraten ausführen. Das erschließt Interaktionsmuster, die ein Cloud-Roundtrip niemals leisten kann: Interfaces, die über die Kamera sehen und Frame für Frame reagieren; Inline-Intelligenz direkt in Formularen und Editoren; semantische Suche ganz ohne Backend; und UIs, die sich an die Aktionen der User anpassen, statt darauf zu warten, was getippt wird.\nIn dieser Session bauen wir Nicht-Chat-KI-Features live und kartografieren die Landschaft der In-Browser-Inferenz: von LiteRT.js (Googles neuer WebAI-Runtime mit direktem PyTorch-Konvertierungspfad) über Transformers.js bis hin zu Chromes Built-in AI APIs. Vor Beginn der Demos schalten wir das WLAN ab: Alles läuft lokal auf dem Laptop auf der Bühne – inklusive eines Pose-Estimation-Modells, das einen Bowling-Anlauf in Echtzeit analysiert. Nebenbei klären wir die pragmatischen Fragen: Modellgröße vs. Download-Budget, Quantisierungs-Kompromisse, Hardware-Diversität sowie die massiven Vorteile für Datenschutz und DSGVO, wenn Daten das Gerät nie verlassen.\nAm Ende nehmt ihr ein klares Framework mit, wann KI auf das Endgerät gehört, wann in die Cloud und wann schlicht gar nicht – plus Interface-Ideen, die eure Nutzer bemerken, noch bevor sie überhaupt an ein Chat-Fenster denken."}, {"s": "12:00", "e": "12:45", "c": 2, "t": "Was ihr über Git nicht wisst", "k": "talk", "sp": "Florian Schick · Schick Software Entwicklung", "who": [["Florian Schick", "Schick Software Entwicklung", "speakers/fs.webp"]], "l": "DE", "g": "DevOps", "d": "Ihr findet nichts in der Git-Historie? Rebase verursacht nur Konflikte? History-Rewriting ist zu kompliziert?\nIch zeige euch anschaulich das Grundprinzip von Git. Danach werden Rebase, Cherry-Pick und History-Rewriting zur Routine. Für alle, die nicht nur mit Git zurechtkommen, sondern es wirklich verstehen wollen."}, {"s": "12:45", "e": "13:55", "c": -1, "t": "Mittagspause", "k": "brk", "sp": "Foyer"}, {"s": "14:00", "e": "14:45", "c": 0, "t": "What’s New in Web – Insights from TPAC 2026", "k": "talk", "sp": "Christian Liebel · Thinktecture AG", "who": [["Christian Liebel", "Thinktecture AG", "speakers/christianl.webp"]], "l": "EN", "g": "Web, Architecture", "d": "Christian is a member of the World Wide Web’s architecture board, the Technical Architecture Group (TAG) of W3C. Join Christian, just back from the W3C's annual Technical Plenary and Advisory Committee (TPAC) week in Dublin, where all W3C working groups such as CSS, WebApps, and Web Machine Learning come together. In his session, you'll gain insights into the latest discussions among standards bodies, browser vendors, and web developers. And you have the opportunity to report your wishes back to the Web’s architecture board. Don't miss this opportunity to stay updated on the forefront of web technologies."}, {"s": "14:00", "e": "14:45", "c": 1, "t": "UX & Devs: Wo Verantwortung beginnt und endet", "k": "talk", "sp": "Miriam Schramm · freelance UX/UI", "who": [["Miriam Schramm", "freelance UX/UI", "speakers/mis.webp"]], "l": "DE", "g": "UX", "d": "UX-Probleme werden in digitalen Produkten oft erst spät sichtbar – und werden dann schnell zur Schuldfrage: „Das Design war schlecht\", „Die Entwickler haben es falsch umgesetzt\" oder „Das Produktmanagement hat nicht sauber priorisiert\". Dabei ist gute User Experience weder ein isolierter Arbeitsschritt noch die Aufgabe eines einzelnen Teams. Sie entsteht im Zusammenspiel von UX, Entwicklung und Produkt über den gesamten Entstehungsprozess hinweg.\nIn diesem Talk beleuchte ich, wo UX-Verantwortung tatsächlich beginnt, wo sie sinnvoll endet und an welchen Stellen Entwickler:innen einen entscheidenden Einfluss auf die tatsächliche Nutzungserfahrung haben. Anhand praxisnaher Beispiele aus B2B- und Produktprojekten zeige ich, welche Entscheidungen UX treffen kann und sollte, wie technische Rahmenbedingungen UX-Arbeit beeinflussen und warum UX kein reines „Design-Problem\", sondern ein System aus Entscheidungen ist. Dabei wird auch deutlich, welche Rolle Übergaben und Abstimmungen – etwa im Handoff zwischen UX und Entwicklung – spielen, warum sie häufig zu Reibung führen und wie Verantwortung an diesen Schnittstellen sinnvoll geteilt werden kann."}, {"s": "14:00", "e": "14:45", "c": 2, "t": "Agentic UI: Wenn KI Teil des Frontends wird", "k": "talk", "sp": "Rainer Hahnekamp, Murat Sari · Soverius AI", "who": [["Rainer Hahnekamp", "Soverius AI", "speakers/rh.webp"], ["Murat Sari", "Soverius AI", "speakers/ms.webp"]], "l": "DE", "g": "AI, Web", "d": "Murat SariSoverius AI\nChatbots wie ChatGPT generieren heute bereits kleine UI-Snippets, die sich an die aktuelle Konversation anpassen. Damit ist ziemlich klar, wohin die Reise geht: Benutzer werden den Chat immer seltener verlassen müssen, um Nachrichten zu lesen, Einkäufe zu tätigen oder andere Aufgaben zu erledigen.\nIst damit das Ende der Frontends besiegelt?\nNicht wirklich. Man möchte Benutzern zum Beispiel online weiterhin ein bewusst gestaltetes Einkaufserlebnis bieten oder hat regulatorische Vorgaben (wie bei der Schadensfallmeldung einer Versicherung), die man selbst kontrollieren und implementieren muss. Gleichzeitig gibt es aber sehr wohl Bereiche in der UI, in denen KI dynamisch eingreifen und einen Mehrwert bringt. Etwa durch effizientere Abläufe oder eine Oberfläche, die sich an die aktuelle Situation und die Bedürfnisse des Users anpasst.\nGenau darum geht es bei Agentic UI.\nIn diesem Vortrag sehen wir uns an, was dahinter steckt, welche Standards wie AG-UI, A2UI und MCP Apps es bereits gibt, welche Tools und Frameworks dabei eine Rolle spielen und welche Erfahrungen man damit bereits in realen Projekten gesammelt hat."}, {"s": "15:00", "e": "15:45", "c": 0, "t": "The Impact of AI on Open Source Teams: Lessons from Angular", "k": "talk", "sp": "Matthieu Riegler · Angular Core Team, Google", "who": [["Matthieu Riegler", "Angular Core Team, Google", "speakers/mr.webp"]], "l": "EN", "g": "AI, Web", "d": "AI is changing the way we build software—and open source teams are no exception. In this talk, I'll share what I've learned from seeing these changes firsthand while working on Angular, from how AI affects day-to-day development to how it changes the way a team collaborates, reviews code, and makes decisions."}, {"s": "15:00", "e": "15:45", "c": 1, "t": "Ein Modell, viele Zielplattformen: Was der offene KI-Standard ONNX heute leistet – und wo er an Grenzen stößt", "k": "talk", "sp": "Dr. Andreas Fehlner · ONNX Steering Committee", "who": [["Dr. Andreas Fehlner", "ONNX Steering Committee", "speakers/af.webp"]], "l": "DE", "g": "AI, Architecture", "d": "2017 war die KI-Landschaft zersplittert: Caffe2, CNTK, MXNet, TensorFlow, PyTorch – jedes Trainingsframework mit eigenem Modellformat, und jede Version mit eigenen Inkompatibilitäten. Genau dafür entstand ONNX, Open Neural Network Exchange: ein offenes Austauschformat, damit ein Modell nicht für immer an das Framework gebunden bleibt, in dem es trainiert wurde. Die Hälfte dieser Frameworks existiert heute nicht mehr. Die Trainingsseite hat sich konsolidiert – die Zielseite dagegen ist vielfältiger denn je: CPUs, GPUs, NPUs, Browser. Die Fragmentierung ist nicht verschwunden, sie ist umgezogen. Getragen wird ONNX von einer herstellerneutralen Foundation; über die Weiterentwicklung entscheidet die Community.\nDer Vortrag beantwortet drei Fragen.\nWas leistet ONNX heute? Nach einer kompakten Einordnung – Graph, Operatoren, Opset-Versionierung als Kompatibilitätsvertrag – geht es in die Praxis: Modell exportieren, mit Netron inspizieren, über verschiedene Execution Provider ausführen. Dazwischen die Stolperstellen: Opset-Wahl, dynamische Achsen, Quantisierung – lösbar, wenn man sie kennt.\nWo stößt es an Grenzen? Generative Modelle passen nicht bruchlos in einen statischen Graphen: dynamische Berechnungspfade wie Mixture of Experts, die Verwaltung von Key-Value-Caches, Ahead-of-Time-Kompilierung für Beschleuniger, die Vielzahl gebräuchlicher Quantisierungsverfahren, die jedes Backend anders umsetzt.\nWer schließt diese Lücken? Eine Working Group arbeitet an den Herausforderungen, die generative Modelle mitbringen: fehlende Operatoren, Exporter, backend-spezifische Repräsentationen, Pipeline-Konstrukte. Einiges steht bereits im Standard – Attention, Rotary Embeddings, RMS-Normalisierung –, parallel läuft die Arbeit an Quantisierung und Graph-Optimierung. Eine zweite Gruppe definiert ein Profil für sicherheitskritische, zertifizierungspflichtige Systeme – dort ist „läuft meistens\" keine Antwort. Eine dritte, seit Anfang 2026 aktiv, nimmt sich probabilistischer Modelle an – die nicht nur ein Ergebnis liefern, sondern gleich eine ganze Wahrscheinlichkeitsverteilung darüber – ein Feld, das heute so zersplittert ist wie das Framework-Ökosystem 2017. Dazu die unsichtbare Arbeit an der Lieferkette: SBOM, SLSA-Provenance, reproduzierbare Builds, tokenloses Publishing. Ein Modellformat ist auch ein Angriffsvektor.\nDas ist der Vorteil eines Standards: Niemand muss die ganze Kette bauen, jede Gruppe löst ihr Stück. Mitmachen kann jeder – alle Meetings sind öffentlich."}, {"s": "15:00", "e": "15:45", "c": 2, "t": "Loop Engineering", "k": "talk", "sp": "Joe Reuter · Elastic", "who": [["Joe Reuter", "Elastic", "speakers/jr.webp"]], "l": "EN", "g": "AI", "d": "Are you still prompting directly in your IDE? Learn how to move up a layer and build the right feedback loop so your agents can work on their own for hours and days without any input - while still performing actual, useful work."}, {"s": "16:00", "e": "16:45", "c": 0, "t": "Codebase-Detox: Mit KI das Chaos beseitigen und mit Quality Gates den Standard halten", "k": "talk", "sp": "Daniel Sogl · SHI GmbH", "who": [["Daniel Sogl", "SHI GmbH", "speakers/ds.webp"]], "l": "DE", "g": "AI, Clean Code", "d": "Wer kennt es nicht: Man landet in einem lange laufenden Projekt, öffnet die ersten Dateien und schlägt direkt die Hände über dem Kopf zusammen. Auf die Frage, warum die Codebase aussieht, als hätte ChatGPT-3 sie an einem Freitagabend blind generiert, kommt der absolute Klassiker: „Dafür haben wir keine Zeit!\", dicht gefolgt von: „Ist uns bewusst, aber…\"\nGenau diese Situation hatte ich erst kürzlich wieder, als ich meine neue Rolle als Bereichsleiter für AI Engineering angetreten habe. Das Bild war altbekannt: Keine klare Architektur, veraltete Dependencies und eine bescheidene Performance.\nIn meinem Talk zeige ich euch anhand echter Praxisbeispiele, wie ich mit modernen KI-Werkzeugen technische Schulden effizient abbaue, anstatt sie nur zu verwalten. Und noch wichtiger: Ihr erfahrt, wie ich im Anschluss mit harten, deterministischen Quality Gates - ganz ohne KI - dafür sorge, dass dieses Chaos gar nicht erst wieder entsteht."}, {"s": "16:00", "e": "16:45", "c": 1, "t": "The Web After the AI Revolution: How WebMCP, Gemma 4, and On-Device Runtimes Redefine the Browser", "k": "talk", "sp": "Kenneth Rohde Christiansen · Intel", "who": [["Kenneth Rohde Christiansen", "Intel", "speakers/krc.webp"]], "l": "EN", "g": "AI, Web", "d": "The open web was the primary raw material for generative AI—Common Crawl alone provided over 80% of foundational model pre-training tokens. Today, that relationship has inverted: automated agents drive over 50% of web traffic, software is overwhelmingly vibe-coded for the browser, and the web platform has evolved from a document repository into the native execution runtime for autonomous AI.\nIn this talk, we explore what the web looks like after the revolution and how developers can build for this new paradigm:\nThe Agent-Web Interface: Why brittle vision loops and DOM scraping fail, and how WebMCP (navigator.modelContext), co-developed in the W3C Web ML Community Group, standardizes how web apps expose typed tools directly to agents—slashing token consumption by 89% in the user's session.\nOn-Device Intelligence with Gemma 4: How open models like Google's Gemma 4 run locally via LiteRT, WebNN, and WebGPU, decoupling agent workflows from cloud latency, subscription fees, and privacy leaks.\n•⁠  ⁠Interactive MCP Apps (SEP-1865): Moving beyond static text chat by embedding reactive, sandboxed HTML/JS tool UIs directly into the reasoning loop using bidirectional postMessage protocol bridging.\nAttendees will see live implementations of an open-source agent runtime bridging live browser tabs, WebMCP endpoints, and local Gemma 4 inference across client hardware."}, {"s": "16:00", "e": "16:45", "c": 2, "t": "The Cross-Origin Storage API", "k": "talk", "sp": "Thomas Steiner · Google", "who": [["Thomas Steiner", "Google", "speakers/ts.webp"]], "l": "EN", "g": "Web", "d": "Today, every website downloads and stores its own copy of large files like AI models, WebAssembly modules, Web fonts, and popular JavaScript libraries. If two websites use the same file, the browser downloads it twice. In this talk, I present the Cross-Origin Storage (COS) API — a proposed shared cache where files are identified by their SHA-256 hash, not by URL. I show both the imperative JavaScript API and the declarative forms via import attributes, HTML, and CSS, with live demos. After this talk, attendees will know how to use COS in their own projects to avoid redundant downloads and reduce storage use across the web.\nKontakt"}, {"s": "16:45", "e": "17:15", "c": -1, "t": "Pause", "k": "brk", "sp": "Foyer"}, {"s": "17:20", "e": "18:05", "c": 0, "t": "Sicherheitsnetze für den Einsatz von Coding Agenten", "k": "talk", "sp": "Ludwig Richter · andrena objects", "who": [["Ludwig Richter", "andrena objects", "speakers/lr.webp"]], "l": "DE", "g": "Security, AI", "d": "Sich häufende Supply-Chain-Angriffe zeigen, wie verwundbar Entwicklungsumgebungen sind. Agentic Coding verstärkt bestehende Risiken und schafft neue Angriffsvektoren. Ludwig Richter leitet mit Hilfe von Treat Modelling ab, womit Entwickler:innen im Alltag arbeiten, was dabei schief gehen kann und welche Maßnahmen dagegen ergriffen werden können. Der Vortrag gibt Impulse, mit denen du risikobasiert erste Schritte zu mehr Sicherheit in deinem Umfeld anstoßen kannst, ohne die Praxistauglichkeit aus den Augen zu verlieren."}, {"s": "17:20", "e": "18:05", "c": 1, "t": "Mutanten unter uns: Wie gut sind deine Unit Tests wirklich?", "k": "talk", "sp": "Jasper Park · bluehands", "who": [["Jasper Park", "bluehands", "speakers/jp.webp"]], "l": "DE", "g": "Clean Code", "d": "Unit Tests sollen Vertrauen schaffen: Für definierte Eingaben prüfen sie erwartete Ergebnisse. Doch auch Testcode kann fehlerhaft, unvollständig oder zu schwach sein. Ein Test kann Code ausführen und damit die Coverage erhöhen, ohne einen Fehler tatsächlich zuverlässig zu erkennen.\nMutation Testing dreht die Perspektive um: Ein Tool verändert den Anwendungscode gezielt mit kleinen, typischen Fehlern, etwa durch vertauschte Vergleichsoperatoren oder geänderte Rückgabewerte. Bleiben anschließend alle Tests grün, haben die Tests diese Mutation nicht bemerkt und sind an dieser Stelle blind.\nIn diesem Talk erläutere ich die Grundlagen von Mutation Testing anhand eines Praxisbeispiels aus dem C#-Umfeld. Wir integrieren Stryker.NET in die lokale Entwicklung, interpretieren die Ergebnisse und schauen darauf, wie Mutation Scores als Qualitätsindikator in Pull Requests eingesetzt werden können."}, {"s": "17:20", "e": "18:05", "c": 2, "t": "Was passiert eigentlich mit meiner Webseite, wenn sie in den Hintergrund tritt?", "k": "talk", "sp": "Matthias Reuter · inovex", "who": [["Matthias Reuter", "inovex", "speakers/mreuter.webp"]], "l": "DE", "g": "Web", "d": "Wenn eine Webseite im Vordergrund ist, wartet sie geduldig auf Nutzereingaben, schickt Daten hin und her und zeichnet lustig Animationen auf den Bildschirm. Aber was macht ein Browser, wenn die Webseite in den Hintergrund tritt? Neben dem großen Gesamtbild und ein paar obskuren, aber spannenden Details erfahrt ihr, was das eine wichtige Event ist, das ihr kennen müsst."}, {"s": "18:15", "e": "18:30", "c": -1, "t": "Closing Notes", "k": "plen", "sp": "Audimax"}, {"s": "18:30", "e": "19:30", "c": -1, "t": "Netzwerken bei Snacks & Bier", "k": "brk", "sp": "Foyer · open end"}];
+const E=[{"s": "09:00", "e": "09:35", "c": -1, "t": "Registrierung & Frühstück", "k": "brk", "sp": "Foyer"}, {"s": "09:40", "e": "09:55", "c": -1, "t": "Welcome Notes", "k": "plen", "sp": "Audimax"}, {"s": "10:00", "e": "10:45", "c": -1, "t": "Trust by Design: Building Secure AI with Google Cloud", "k": "key", "id": "kv_lc", "l": "EN", "g": "", "d": "Luiz Carneirosmapiot GmbH\nIn 2026, just building AI apps isn't enough anymore – they also have to be secure and compliant. With regulations like the EU AI Act now in full effect, security can no longer be an afterthought. But how do you meet strict legal rules without slowing down your developers?\nIn this session, we will talk about both legal aspects and architecture. We will look at major AI vulnerabilities like prompt injection and data leaks, and map out a practical, 3-layer security framework using Google Cloud. You'll learn how to block threats with Cloud Armor, filter AI inputs and outputs in real time using Model Armor, and protect user privacy with Sensitive Data Protection. Join to find out how to build a complete protective shell around your apps.", "who": [["Katya Vinnichenko", "Google", "speakers/kv.webp"], ["Luiz Carneiro", "smapiot GmbH", "speakers/lc.webp"]]}, {"s": "11:00", "e": "11:45", "c": 0, "t": "Chatless-AI – Realtime-Sprachinterfaces für Web und Mobile entwickeln", "k": "talk", "id": "sl", "l": "DE", "g": "AI, Web, Mobile Development", "d": "Mit Realtime-Sprachmodellen wie GPT-realtime oder Gemini-Live entsteht eine neue Generation von Interfaces: Sprache wird zum sofort reagierenden, latenzarmen Interaktionskanal – ohne Prompting, ohne Wartezeiten, hands-free.\nIn diesem Talk zeigt Sascha Lehmann, wie Realtime-Modelle technisch funktionieren, wie man Kontextgrenzen, Rollen und Sicherheit zuverlässig kontrolliert und wie sich Realtime-AI gezielt in Web- und Mobile-Anwendungen integrieren lässt – von Architektur über Kostenoptimierung bis hin zur UX, die Nutzer transparent durch den Dialog führt.", "who": [["Sascha Lehmann", "Thinktecture AG", "speakers/sl.webp"]]}, {"s": "11:00", "e": "11:45", "c": 1, "t": "Java 27 - Bessere Sprache, Bessere APIs, Bessere Laufzeit", "k": "talk", "id": "np", "l": "DE", "g": "Java", "d": "Java 25 ist das jüngste Release mit Langzeitunterstützung und es kam mit jeder Menge Features. Aber seitdem sind auch Java 26 und 27 bereits erschienen und haben noch ein wenig draufgelegt:\n* von Modulimporten zu besserem Pattern Matching\n* von Structured Concurrency zu HTTP/3\n* von einer einfacheren Main-Methode zum direkten Start von Quellcode\n* von besserer Performance zu quantencomputer-resistenter Verschlüsselung\nOb neu, verbessert oder finalisiert - es gibt jede Menge Features in der Sprache, der Standardbibliothek und der Laufzeit zu besprechen. Also machen wir genau das!", "who": [["Nicolai Parlog", "Oracle", "speakers/np.webp"]]}, {"s": "11:00", "e": "11:45", "c": 2, "t": "A Developer's Guide the CRA", "k": "talk", "id": "gm", "l": "DE", "g": "Security", "d": "Der Cyber Resilience Act, kurz CRA, betrifft jede Entwicklerin und jeden Entwickler, die Software entwickeln oder verwalten, die auf dem EU Markt landet. Dieser Vortrag gibt einen Überblick aus Entwicklersicht und beantwortet drei Fragen.\nErstens, was muss ich als Entwickler beachten, um CRA compliant zu sein. Bereits seit dem 11. September 2026 muss ich aktiv ausgenutzte Schwachstellen und schwerwiegende Sicherheitsvorfälle innerhalb enger Fristen melden. Ab Dezember 2027 kommen dann die eigentlichen Produktanforderungen hinzu, etwa Security by Design und die technische Dokumentation, die ich bis dahin umgesetzt haben muss.\nZweitens, wie sieht die Umsetzung des CRA im Alltag konkret aus. Wir übersetzen die Anforderungen in Aufgaben im Entwicklungsprozess, ohne uns in Einzelheiten zu verlieren.\nDrittens, wie kann KI bei dieser Aufgabe helfen. Wir werfen einen kurzen Blick darauf, wo KI gestützte Werkzeuge heute bereits unterstützen können, und wo KI generierter Code selbst zu einer neuen Fragestellung im Rahmen des CRA wird.\nAm Ende dieses Vortrags wissen die Teilnehmenden, was für sie persönlich zu tun ist und wie sich das in ihren Entwicklungsalltag einfügt.", "who": [["Grégoire Mercier", "bluehands GmbH & Co.mmunication KG", "speakers/gm.webp"]]}, {"s": "12:00", "e": "12:45", "c": 0, "t": "Developers under attack - how to protect yourself", "k": "talk", "id": "ck", "l": "EN", "g": "Security", "d": "Supply chain attacks are increasingly focusing on developers and automation tools.\nIn early 2025, someone infected a widely used security tool, then used the knowledge from that attack to subsequently infect npm- and python packages to steal developer credentials.\nThe talk will show how these kinds of attacks worked and how developers can protect themselves (and their assets) against similar attacks and why ai might or might not be helpful in these scenarios.", "who": [["Christian Kühn", "dmTECH GmbH", "speakers/ck.webp"]]}, {"s": "12:00", "e": "12:45", "c": 1, "t": "Beyond the Chatbot: Client-Side AI mit WebGPU, WebNN & In-Browser Inference", "k": "talk", "id": "mb", "l": "DE", "g": "AI, Web", "d": "Jedes KI-Feature wird heute auf dieselbe Weise ausgeliefert: Ein Chat-Fenster wird notdürftig an die Seite der App geklatscht. Chat ist die Kommandozeile der KI-Ära – mächtig, aber faul. Er zwingt Nutzer dazu, Absichten mühsam zu formulieren, reißt sie aus dem Flow und verschleiert, was das Produkt eigentlich kann.\nEs geht besser – und die Lösung steckt bereits im Browser, für den ihr ohnehin entwickelt. Dank WebGPU, WebAssembly und dem aufkommenden WebNN-Standard können moderne Browser vollwertige ML-Modelle bei interaktiven Bildraten ausführen. Das erschließt Interaktionsmuster, die ein Cloud-Roundtrip niemals leisten kann: Interfaces, die über die Kamera sehen und Frame für Frame reagieren; Inline-Intelligenz direkt in Formularen und Editoren; semantische Suche ganz ohne Backend; und UIs, die sich an die Aktionen der User anpassen, statt darauf zu warten, was getippt wird.\nIn dieser Session bauen wir Nicht-Chat-KI-Features live und kartografieren die Landschaft der In-Browser-Inferenz: von LiteRT.js (Googles neuer WebAI-Runtime mit direktem PyTorch-Konvertierungspfad) über Transformers.js bis hin zu Chromes Built-in AI APIs. Vor Beginn der Demos schalten wir das WLAN ab: Alles läuft lokal auf dem Laptop auf der Bühne – inklusive eines Pose-Estimation-Modells, das einen Bowling-Anlauf in Echtzeit analysiert. Nebenbei klären wir die pragmatischen Fragen: Modellgröße vs. Download-Budget, Quantisierungs-Kompromisse, Hardware-Diversität sowie die massiven Vorteile für Datenschutz und DSGVO, wenn Daten das Gerät nie verlassen.\nAm Ende nehmt ihr ein klares Framework mit, wann KI auf das Endgerät gehört, wann in die Cloud und wann schlicht gar nicht – plus Interface-Ideen, die eure Nutzer bemerken, noch bevor sie überhaupt an ein Chat-Fenster denken.", "who": [["Marcel Bagemihl", "Consid", "speakers/mb.webp"]]}, {"s": "12:00", "e": "12:45", "c": 2, "t": "Was ihr über Git nicht wisst", "k": "talk", "id": "fs", "l": "DE", "g": "DevOps", "d": "Ihr findet nichts in der Git-Historie? Rebase verursacht nur Konflikte? History-Rewriting ist zu kompliziert?\nIch zeige euch anschaulich das Grundprinzip von Git. Danach werden Rebase, Cherry-Pick und History-Rewriting zur Routine. Für alle, die nicht nur mit Git zurechtkommen, sondern es wirklich verstehen wollen.", "who": [["Florian Schick", "Schick Software Entwicklung", "speakers/fs.webp"]]}, {"s": "12:45", "e": "13:55", "c": -1, "t": "Mittagspause", "k": "brk", "sp": "Foyer"}, {"s": "14:00", "e": "14:45", "c": 0, "t": "What’s New in Web – Insights from TPAC 2026", "k": "talk", "id": "christianl", "l": "EN", "g": "Web, Architecture", "d": "Christian is a member of the World Wide Web’s architecture board, the Technical Architecture Group (TAG) of W3C. Join Christian, just back from the W3C's annual Technical Plenary and Advisory Committee (TPAC) week in Dublin, where all W3C working groups such as CSS, WebApps, and Web Machine Learning come together. In his session, you'll gain insights into the latest discussions among standards bodies, browser vendors, and web developers. And you have the opportunity to report your wishes back to the Web’s architecture board. Don't miss this opportunity to stay updated on the forefront of web technologies.", "who": [["Christian Liebel", "Thinktecture AG", "speakers/christianl.webp"]]}, {"s": "14:00", "e": "14:45", "c": 1, "t": "UX & Devs: Wo Verantwortung beginnt und endet", "k": "talk", "id": "mis", "l": "DE", "g": "UX", "d": "UX-Probleme werden in digitalen Produkten oft erst spät sichtbar – und werden dann schnell zur Schuldfrage: „Das Design war schlecht\", „Die Entwickler haben es falsch umgesetzt\" oder „Das Produktmanagement hat nicht sauber priorisiert\". Dabei ist gute User Experience weder ein isolierter Arbeitsschritt noch die Aufgabe eines einzelnen Teams. Sie entsteht im Zusammenspiel von UX, Entwicklung und Produkt über den gesamten Entstehungsprozess hinweg.\nIn diesem Talk beleuchte ich, wo UX-Verantwortung tatsächlich beginnt, wo sie sinnvoll endet und an welchen Stellen Entwickler:innen einen entscheidenden Einfluss auf die tatsächliche Nutzungserfahrung haben. Anhand praxisnaher Beispiele aus B2B- und Produktprojekten zeige ich, welche Entscheidungen UX treffen kann und sollte, wie technische Rahmenbedingungen UX-Arbeit beeinflussen und warum UX kein reines „Design-Problem\", sondern ein System aus Entscheidungen ist. Dabei wird auch deutlich, welche Rolle Übergaben und Abstimmungen – etwa im Handoff zwischen UX und Entwicklung – spielen, warum sie häufig zu Reibung führen und wie Verantwortung an diesen Schnittstellen sinnvoll geteilt werden kann.", "who": [["Miriam Schramm", "Freiberufliche UX/UI Expertin", "speakers/mis.webp"]]}, {"s": "14:00", "e": "14:45", "c": 2, "t": "Agentic UI: Wenn KI Teil des Frontends wird", "k": "talk", "id": "rh_ms", "l": "DE", "g": "AI, Web", "d": "Murat SariSoverius AI\nChatbots wie ChatGPT generieren heute bereits kleine UI-Snippets, die sich an die aktuelle Konversation anpassen. Damit ist ziemlich klar, wohin die Reise geht: Benutzer werden den Chat immer seltener verlassen müssen, um Nachrichten zu lesen, Einkäufe zu tätigen oder andere Aufgaben zu erledigen.\nIst damit das Ende der Frontends besiegelt?\nNicht wirklich. Man möchte Benutzern zum Beispiel online weiterhin ein bewusst gestaltetes Einkaufserlebnis bieten oder hat regulatorische Vorgaben (wie bei der Schadensfallmeldung einer Versicherung), die man selbst kontrollieren und implementieren muss. Gleichzeitig gibt es aber sehr wohl Bereiche in der UI, in denen KI dynamisch eingreifen und einen Mehrwert bringt. Etwa durch effizientere Abläufe oder eine Oberfläche, die sich an die aktuelle Situation und die Bedürfnisse des Users anpasst.\nGenau darum geht es bei Agentic UI.\nIn diesem Vortrag sehen wir uns an, was dahinter steckt, welche Standards wie AG-UI, A2UI und MCP Apps es bereits gibt, welche Tools und Frameworks dabei eine Rolle spielen und welche Erfahrungen man damit bereits in realen Projekten gesammelt hat.", "who": [["Rainer Hahnekamp", "Soverius AI", "speakers/rh.webp"], ["Murat Sari", "Soverius AI", "speakers/ms.webp"]]}, {"s": "15:00", "e": "15:45", "c": 0, "t": "The Impact of AI on Open Source Teams: Lessons from Angular", "k": "talk", "id": "mr", "l": "EN", "g": "AI, Web", "d": "AI is changing the way we build software—and open source teams are no exception. In this talk, I'll share what I've learned from seeing these changes firsthand while working on Angular, from how AI affects day-to-day development to how it changes the way a team collaborates, reviews code, and makes decisions.", "who": [["Matthieu Riegler", "Angular Core Team, Google", "speakers/mr.webp"]]}, {"s": "15:00", "e": "15:45", "c": 1, "t": "Ein Modell, viele Zielplattformen: Was der offene KI-Standard ONNX heute leistet – und wo er an Grenzen stößt", "k": "talk", "id": "af", "l": "DE", "g": "AI, Architecture", "d": "2017 war die KI-Landschaft zersplittert: Caffe2, CNTK, MXNet, TensorFlow, PyTorch – jedes Trainingsframework mit eigenem Modellformat, und jede Version mit eigenen Inkompatibilitäten. Genau dafür entstand ONNX, Open Neural Network Exchange: ein offenes Austauschformat, damit ein Modell nicht für immer an das Framework gebunden bleibt, in dem es trainiert wurde. Die Hälfte dieser Frameworks existiert heute nicht mehr. Die Trainingsseite hat sich konsolidiert – die Zielseite dagegen ist vielfältiger denn je: CPUs, GPUs, NPUs, Browser. Die Fragmentierung ist nicht verschwunden, sie ist umgezogen. Getragen wird ONNX von einer herstellerneutralen Foundation; über die Weiterentwicklung entscheidet die Community.\nDer Vortrag beantwortet drei Fragen.\nWas leistet ONNX heute? Nach einer kompakten Einordnung – Graph, Operatoren, Opset-Versionierung als Kompatibilitätsvertrag – geht es in die Praxis: Modell exportieren, mit Netron inspizieren, über verschiedene Execution Provider ausführen. Dazwischen die Stolperstellen: Opset-Wahl, dynamische Achsen, Quantisierung – lösbar, wenn man sie kennt.\nWo stößt es an Grenzen? Generative Modelle passen nicht bruchlos in einen statischen Graphen: dynamische Berechnungspfade wie Mixture of Experts, die Verwaltung von Key-Value-Caches, Ahead-of-Time-Kompilierung für Beschleuniger, die Vielzahl gebräuchlicher Quantisierungsverfahren, die jedes Backend anders umsetzt.\nWer schließt diese Lücken? Eine Working Group arbeitet an den Herausforderungen, die generative Modelle mitbringen: fehlende Operatoren, Exporter, backend-spezifische Repräsentationen, Pipeline-Konstrukte. Einiges steht bereits im Standard – Attention, Rotary Embeddings, RMS-Normalisierung –, parallel läuft die Arbeit an Quantisierung und Graph-Optimierung. Eine zweite Gruppe definiert ein Profil für sicherheitskritische, zertifizierungspflichtige Systeme – dort ist „läuft meistens\" keine Antwort. Eine dritte, seit Anfang 2026 aktiv, nimmt sich probabilistischer Modelle an – die nicht nur ein Ergebnis liefern, sondern gleich eine ganze Wahrscheinlichkeitsverteilung darüber – ein Feld, das heute so zersplittert ist wie das Framework-Ökosystem 2017. Dazu die unsichtbare Arbeit an der Lieferkette: SBOM, SLSA-Provenance, reproduzierbare Builds, tokenloses Publishing. Ein Modellformat ist auch ein Angriffsvektor.\nDas ist der Vorteil eines Standards: Niemand muss die ganze Kette bauen, jede Gruppe löst ihr Stück. Mitmachen kann jeder – alle Meetings sind öffentlich.", "who": [["Dr. Andreas Fehlner", "ONNX Steering Committee", "speakers/af.webp"]]}, {"s": "15:00", "e": "15:45", "c": 2, "t": "Loop Engineering", "k": "talk", "id": "jr", "l": "EN", "g": "AI", "d": "Are you still prompting directly in your IDE? Learn how to move up a layer and build the right feedback loop so your agents can work on their own for hours and days without any input - while still performing actual, useful work.", "who": [["Joe Reuter", "Elastic", "speakers/jr.webp"]]}, {"s": "16:00", "e": "16:45", "c": 0, "t": "Fokus schlägt Feuerwerk – Warum konzentrierte Softwareentwicklung die Superkraft moderner Teams ist", "k": "talk", "id": "ar", "l": "DE", "g": "Clean Code", "d": "Teams blinkt, Jira piept, das Handy vibriert – und irgendwo fragt jemand, ob „das Feature\" noch heute fertig wird. Willkommen im digitalen Zirkus, in dem jeder von uns gleichzeitig Jongleur, Akrobat und Feuerwehrmann sein soll.\nIn diesem Vortrag schauen wir uns an, warum Multitasking eigentlich nur „mehrere Dinge gleichzeitig schlecht machen\" bedeutet und wie viel Produktivität im Alltag einfach in Kontextwechseln verdampft. Wir sprechen über Aufmerksamkeitsspannen, mentale Ladekreisläufe, Priorisierung, Werkzeuge – und warum ein einziges aktives Projekt manchmal mehr bewirkt als drei halbfertige.\nEin unterhaltsamer Blick durch die neurologische Brille darauf, wie wir wieder in den Flow kommen, bessere Software bauen – und am Ende des Tages weniger das Gefühl haben, von unserem eigenen Kalender verfolgt zu werden.", "who": [["Andreas Rothenhäusler", "Forterro Deutschland Abas GmbH", "speakers/ar.webp"]]}, {"s": "16:00", "e": "16:45", "c": 1, "t": "The Web After the AI Revolution: How WebMCP, Gemma 4, and On-Device Runtimes Redefine the Browser", "k": "talk", "id": "krc", "l": "EN", "g": "AI, Web", "d": "The open web was the primary raw material for generative AI—Common Crawl alone provided over 80% of foundational model pre-training tokens. Today, that relationship has inverted: automated agents drive over 50% of web traffic, software is overwhelmingly vibe-coded for the browser, and the web platform has evolved from a document repository into the native execution runtime for autonomous AI.\nIn this talk, we explore what the web looks like after the revolution and how developers can build for this new paradigm:\nThe Agent-Web Interface: Why brittle vision loops and DOM scraping fail, and how WebMCP (navigator.modelContext), co-developed in the W3C Web ML Community Group, standardizes how web apps expose typed tools directly to agents—slashing token consumption by 89% in the user's session.\nOn-Device Intelligence with Gemma 4: How open models like Google's Gemma 4 run locally via LiteRT, WebNN, and WebGPU, decoupling agent workflows from cloud latency, subscription fees, and privacy leaks.\n•⁠  ⁠Interactive MCP Apps (SEP-1865): Moving beyond static text chat by embedding reactive, sandboxed HTML/JS tool UIs directly into the reasoning loop using bidirectional postMessage protocol bridging.\nAttendees will see live implementations of an open-source agent runtime bridging live browser tabs, WebMCP endpoints, and local Gemma 4 inference across client hardware.", "who": [["Kenneth Rohde Christiansen", "Intel Corporation", "speakers/krc.webp"]]}, {"s": "16:00", "e": "16:45", "c": 2, "t": "The Cross-Origin Storage API", "k": "talk", "id": "ts", "l": "EN", "g": "Web", "d": "Today, every website downloads and stores its own copy of large files like AI models, WebAssembly modules, Web fonts, and popular JavaScript libraries. If two websites use the same file, the browser downloads it twice. In this talk, I present the Cross-Origin Storage (COS) API — a proposed shared cache where files are identified by their SHA-256 hash, not by URL. I show both the imperative JavaScript API and the declarative forms via import attributes, HTML, and CSS, with live demos. After this talk, attendees will know how to use COS in their own projects to avoid redundant downloads and reduce storage use across the web.\nKontakt", "who": [["Thomas Steiner", "Google", "speakers/ts.webp"]]}, {"s": "16:45", "e": "17:15", "c": -1, "t": "Pause", "k": "brk", "sp": "Foyer"}, {"s": "17:20", "e": "18:05", "c": 0, "t": "Sicherheitsnetze für den Einsatz von Coding Agenten", "k": "talk", "id": "lr", "l": "DE", "g": "Security, AI", "d": "Sich häufende Supply-Chain-Angriffe zeigen, wie verwundbar Entwicklungsumgebungen sind. Agentic Coding verstärkt bestehende Risiken und schafft neue Angriffsvektoren. Ludwig Richter leitet mit Hilfe von Threat Modelling ab, womit Entwickler:innen im Alltag arbeiten, was dabei schief gehen kann und welche Maßnahmen dagegen ergriffen werden können. Der Vortrag gibt Impulse, mit denen du risikobasiert erste Schritte zu mehr Sicherheit in deinem Umfeld anstoßen kannst, ohne die Praxistauglichkeit aus den Augen zu verlieren.", "who": [["Ludwig Richter", "andrena objects ag", "speakers/lr.webp"]]}, {"s": "17:20", "e": "18:05", "c": 1, "t": "Mutanten unter uns: Wie gut sind deine Unit Tests wirklich?", "k": "talk", "id": "jp", "l": "DE", "g": "Clean Code", "d": "Unit Tests sollen Vertrauen schaffen: Für definierte Eingaben prüfen sie erwartete Ergebnisse. Doch auch Testcode kann fehlerhaft, unvollständig oder zu schwach sein. Ein Test kann Code ausführen und damit die Coverage erhöhen, ohne einen Fehler tatsächlich zuverlässig zu erkennen.\nMutation Testing dreht die Perspektive um: Ein Tool verändert den Anwendungscode gezielt mit kleinen, typischen Fehlern, etwa durch vertauschte Vergleichsoperatoren oder geänderte Rückgabewerte. Bleiben anschließend alle Tests grün, haben die Tests diese Mutation nicht bemerkt und sind an dieser Stelle blind.\nIn diesem Talk erläutere ich die Grundlagen von Mutation Testing anhand eines Praxisbeispiels aus dem C#-Umfeld. Wir integrieren Stryker.NET in die lokale Entwicklung, interpretieren die Ergebnisse und schauen darauf, wie Mutation Scores als Qualitätsindikator in Pull Requests eingesetzt werden können.", "who": [["Jasper Park", "bluehands GmbH & Co.mmunication KG", "speakers/jp.webp"]]}, {"s": "17:20", "e": "18:05", "c": 2, "t": "Was passiert eigentlich mit meiner Webseite, wenn sie in den Hintergrund tritt?", "k": "talk", "id": "mreuter", "l": "DE", "g": "Web", "d": "Wenn eine Webseite im Vordergrund ist, wartet sie geduldig auf Nutzereingaben, schickt Daten hin und her und zeichnet lustig Animationen auf den Bildschirm. Aber was macht ein Browser, wenn die Webseite in den Hintergrund tritt? Neben dem großen Gesamtbild und ein paar obskuren, aber spannenden Details erfahrt ihr, was das eine wichtige Event ist, das ihr kennen müsst.", "who": [["Matthias Reuter", "inovex GmbH", "speakers/mreuter.webp"]]}, {"s": "18:15", "e": "18:30", "c": -1, "t": "Closing Notes", "k": "plen", "sp": "Audimax"}, {"s": "18:30", "e": "19:30", "c": -1, "t": "Netzwerken bei Snacks & Bier", "k": "brk", "sp": "Foyer · open end"}], META={"hash": "30575f507aba", "rooms": ["Audimax", "Raum 1", "Raum 2"], "synced": "2026-11-06T14:01+00:00"};
 const EVENT_DATE=new Date(2026,10,7);
-const ROOMS=["Audimax","Raum 1","Raum 2"];
+const ROOMS=META.rooms;
 const ST=["","going","interested"], ST_LABEL=["Not set","Going","Interested"];
-const TAG={"AI":"ai","Web":"web","Mobile":"mobile","Security":"sec","Java":"java","DevOps":"ops","UX":"ux","Clean Code":"clean","Architecture":"arch"};
-const KEY="devfestka-2026-ranks", VKEY="devfestka-2026-view";
+const TAG={"AI":"ai","Web":"web","Mobile":"mobile","Mobile Development":"mobile","Security":"sec","Java":"java","DevOps":"ops","UX":"ux","Clean Code":"clean","Architecture":"arch"};
+const KEY="devfestka-2026-ranks", VKEY="devfestka-2026-view", SKEY="devfestka-2026-seen";
 const min=s=>{const[h,m]=s.split(":");return h*60+ +m};
 const hm=m=>`${String(Math.floor(m/60)).padStart(2,"0")}:${String(m%60).padStart(2,"0")}`;
 const dur=d=>d<60?`${d} min`:`${Math.floor(d/60)} h`+(d%60?` ${d%60} min`:"");
+const short=d=>d<60?`${d} min`:d%60&&d<600?`${Math.floor(d/60)} h ${d%60}`:`${Math.round(d/60)} h`;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const id=e=>e.s+"-"+e.c;
-let picks={};
-try{
-  const raw=JSON.parse(localStorage.getItem(KEY))||{};
-  for(const k in raw){const v=raw[k]; picks[k]=v===1?"going":(v===2||v===3)?"interested":v} // migrate old ①②③
-}catch{}
-const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(picks))}catch{}};
-let view="all"; try{view=localStorage.getItem(VKEY)||"all"}catch{}
-const st=e=>picks[id(e)]||"";
+const load=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}};
+const store=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
+const BY_ID=Object.fromEntries(E.filter(e=>e.id).map(e=>[e.id,e]));
+const roomOf=e=>e.c<0?(e.k==="key"?"Keynote · Audimax":"Audimax"):ROOMS[e.c];
+const snap=e=>({s:e.s,r:roomOf(e),t:e.t}); // what the talk looked like when you picked it
+
+// ponytail: picks used to be keyed by "time-room"; map those once to talk ids. Delete after the event.
+const LEGACY={"10:00--1":["kv_lc","Trust by Design: Building Secure AI with Google Cloud"],"11:00-0":["sl","Chatless-AI"],"11:00-1":["np","Java 27"],"11:00-2":["gm","A Developer's Guide the CRA"],
+ "12:00-0":["ck","Developers under attack"],"12:00-1":["mb","Beyond the Chatbot"],"12:00-2":["fs","Was ihr über Git nicht wisst"],"14:00-0":["christianl","What’s New in Web"],"14:00-1":["mis","UX & Devs"],
+ "14:00-2":["rh_ms","Agentic UI"],"15:00-0":["mr","The Impact of AI on Open Source Teams"],"15:00-1":["af","Ein Modell, viele Zielplattformen"],"15:00-2":["jr","Loop Engineering"],
+ "16:00-0":["ds","Codebase-Detox: Mit KI das Chaos beseitigen und mit Quality Gates den Standard halten"],"16:00-1":["krc","The Web After the AI Revolution"],"16:00-2":["ts","The Cross-Origin Storage API"],
+ "17:20-0":["lr","Sicherheitsnetze für den Einsatz von Coding Agenten"],"17:20-1":["jp","Mutanten unter uns"],"17:20-2":["mreuter","Was passiert eigentlich mit meiner Webseite"]};
+let picks={}, seen=load(SKEY,{});
+for(const [k,v] of Object.entries(load(KEY,{}))){
+  const val=v===1?"going":(v===2||v===3)?"interested":v;
+  const old=LEGACY[k];
+  if(old){picks[old[0]]=val; const [,s,c]=k.match(/^(\d\d:\d\d)-(-?\d)$/); seen[old[0]]??={s,r:+c<0?"Keynote · Audimax":["Audimax","Raum 1","Raum 2"][+c],t:old[1]}}
+  else picks[k]=val;
+}
+for(const k in picks) if(!seen[k]&&BY_ID[k]) seen[k]=snap(BY_ID[k]);
+const save=()=>{store(KEY,picks);store(SKEY,seen)};
+save();
+let view=load(VKEY,"all");
+
+// A shared plan arrives as #p=<going ids>~<interested ids>; it is shown read-only and never written to your picks.
+let shared=null;
+function readHash(){
+  const m=location.hash.match(/^#p=([a-z0-9_.~]*)$/i);
+  if(!m){shared=null;return}
+  const [g="",i=""]=m[1].split("~"); shared={};
+  g.split(".").filter(Boolean).forEach(k=>shared[k]="going");
+  i.split(".").filter(Boolean).forEach(k=>shared[k]??="interested");
+}
+const encode=p=>{const by=s=>Object.keys(p).filter(k=>p[k]===s&&BY_ID[k]).join(".");const i=by("interested");return by("going")+(i?"~"+i:"")};
+readHash();
+
+const cur=()=>shared||picks;
+const st=e=>e.id?cur()[e.id]||"":"";
 const byStatus=(a,b)=>ST.indexOf(st(a))-ST.indexOf(st(b)); // going before interested
+const moved=e=>{if(shared||!st(e))return null; const v=seen[e.id]; return v&&(v.s!==e.s||v.r!==roomOf(e))?v:null};
+const gone=()=>shared?[]:Object.keys(picks).filter(k=>!BY_ID[k]);
 
 const SLOTS=[]; for(const e of E){const last=SLOTS.at(-1); last&&last.s===e.s?last.items.push(e):SLOTS.push({s:e.s,e:e.e,items:[e]})}
 const pickable=sl=>["talk","key"].includes(sl.items[0].k);
@@ -188,20 +229,21 @@ function dayLabel(now){
   return (rel?rel+" · ":"")+"Sat 7 Nov"+(rel?"":" 2026");
 }
 
-const roomOf=e=>e.c<0?"Keynote · Audimax":ROOMS[e.c];
 const initials=n=>n.replace(/^Dr\. /,"").split(" ").map(w=>w[0]).slice(0,2).join("");
 const people=e=>`<div class="people">${e.who.map(([n,co,img])=>`<div class="person">
   <span class="av">${initials(n)}<img src="${img}" alt="" onerror="this.remove()"></span>
   <span class="who"><span class="name">${esc(n)}</span><span class="co">${esc(co)}</span></span></div>`).join("")}</div>`;
-const tags=e=>`<div class="tags">${e.g.split(", ").map(g=>`<span class="tag" style="--c:var(--t-${TAG[g]})">${g}</span>`).join("")}</div>`;
+const tags=e=>e.g?`<div class="tags">${e.g.split(", ").map(g=>`<span class="tag" style="--c:var(--t-${TAG[g]||"other"})">${esc(g)}</span>`).join("")}</div>`:"<span></span>";
 const en=e=>e.l==="EN"?`<span class="en" title="Talk in English">EN</span>`:"";
-const status=e=>{const i=ST.indexOf(st(e));return `<button class="status" data-cycle="${id(e)}" data-i="${i}" aria-label="Status: ${ST_LABEL[i]}. Tap to change.">
+const status=e=>{if(shared)return "";const i=ST.indexOf(st(e));return `<button class="status" data-cycle="${e.id}" data-i="${i}" aria-label="Status: ${ST_LABEL[i]}. Tap to change.">
   <span class="win"><span class="track" style="transform:translateY(${-26*i}px)">${ST_LABEL.map(l=>`<span>${l}</span>`).join("")}</span></span></button>`};
+const movedNote=e=>{const v=moved(e);return v?`<span class="chg">Moved · was ${v.s} · ${esc(v.r)}</span>`:""};
 
 function card(e,dim){
   const s=st(e);
-  return `<article class="talk${dim&&!s?" dim":""}" data-st="${s}" data-open="${id(e)}" tabindex="0">
+  return `<article class="talk${dim&&!s?" dim":""}" data-st="${s}" data-open="${e.id}" tabindex="0">
     <div class="top"><span class="room">${roomOf(e)}</span>${en(e)}</div>
+    ${movedNote(e)}
     <h3 class="title">${esc(e.t)}</h3>
     ${people(e)}
     <div class="foot">${tags(e)}${status(e)}</div>
@@ -233,25 +275,36 @@ function rowsMine(){
 
 function render(){
   const now=new Date(), m=now.getHours()*60+now.getMinutes(), today=dayOffset(now)===0;
-  const mine=view==="mine", rows=mine?rowsMine():rowsAll();
+  const mine=view==="mine"||!!shared, rows=mine?rowsMine():rowsAll();
   const next=rows.find(r=>r.kind==="talks"&&r.s>m);
-  const short=d=>d<60?`${d} min`:d%60&&d<600?`${Math.floor(d/60)} h ${d%60}`:`${Math.round(d/60)} h`;
   const range=r=>`<span class="ftime"><span>${hm(r.s)}</span><span>${hm(r.e)}</span></span>`;
 
-  sched.innerHTML=rows.map(r=>{
+  let top="";
+  if(shared){
+    const n=Object.keys(shared).filter(k=>BY_ID[k]).length;
+    top+=`<div class="banner"><div><b>Shared plan</b> · ${n} talk${n===1?"":"s"} · read-only, your own picks are untouched</div>
+      <div class="banner-btns"><button class="btn" id="adopt">Use as my plan</button><button class="btn" id="unshare">Back to my plan</button></div></div>`;
+  }
+  for(const k of gone()){
+    const v=seen[k]||{t:"A talk you picked",s:"?",r:"?"};
+    top+=`<div class="banner warn"><div><b>No longer in the schedule:</b> ${esc(v.t)} <span class="was">(was ${v.s} · ${esc(v.r)})</span><br><small>Cancelled or replaced on devfestka.de.</small></div>
+      <div class="banner-btns"><button class="btn" data-drop="${esc(k)}">Remove</button></div></div>`;
+  }
+
+  sched.innerHTML=top+rows.map(r=>{
     const past=today&&r.e<=m?" past":"";
     if(r.kind==="talks"){
       let body;
       if(mine){
         const [main,...alts]=r.show;
         body=`<div class="stack"><div class="talks one">${card(main,false)}</div>
-          ${alts.map(a=>`<button class="alt" data-open="${id(a)}"><span>or</span> ${esc(a.t)} <i>· ${roomOf(a)}</i></button>`).join("")}</div>`;
+          ${alts.map(a=>`<button class="alt" data-open="${a.id}"><span>or</span> ${esc(a.t)} <i>· ${roomOf(a)}</i></button>`).join("")}</div>`;
       } else {
         const anyGoing=r.items.some(e=>st(e)==="going");
-        body=`<div class="talks${r.items.length===1?" one":""}">${r.items.map(e=>card(e,anyGoing)).join("")}</div>`;
+        body=`<div class="talks${r.items.length===1?" one":""}" style="--cols:${r.items.length}">${r.items.map(e=>card(e,anyGoing)).join("")}</div>`;
       }
       return `<section class="slot${past}" data-s="${r.s}" data-e="${r.e}" data-talk>
-        <div class="head"><b>${hm(r.s)}</b><span>· ${dur(r.e-r.s)}</span>${r===next?`<span class="soon">starts in ${short(r.s-m)}</span>`:""}</div>
+        <div class="head"><b>${hm(r.s)}</b><span>· ${dur(r.e-r.s)}</span>${r.s<=m&&m<r.e?`<span class="left">${short(r.e-m)} left</span>`:r===next?`<span class="soon">starts in ${short(r.s-m)}</span>`:""}</div>
         <div class="body">${body}</div><div class="end">${hm(r.e)}</div></section>`;
     }
     let body;
@@ -265,54 +318,69 @@ function render(){
     }
     return `<section class="slot${past}" data-s="${r.s}" data-e="${r.e}"><div class="body">${body}</div></section>`;
   }).join("");
-  if(mine&&!rows.some(r=>r.kind==="talks")) sched.insertAdjacentHTML("afterbegin",`<p class="empty">No picks yet. Switch to <b>All</b> and mark talks as Going or Interested.</p>`);
+  if(mine&&!rows.some(r=>r.kind==="talks")) sched.insertAdjacentHTML("beforeend",`<p class="empty">No picks yet. Switch to <b>All talks</b> and mark talks as Going or Interested.</p>`);
 
-  // Now marker: a dot on the running row's ruler (top of the next row when between rows), plus a line across the cards on wide screens.
+  // Now marker: dot on the timeline (top of the next row when between rows), "x min left" on the running talk row, a line behind the cards on wide screens.
   const secs=[...sched.querySelectorAll(".slot")];
   const host=secs.find(s=>m<+s.dataset.e)||secs.at(-1);
   if(host){
     const pct=m>=+host.dataset.e?1:Math.max(0,(m-host.dataset.s)/(host.dataset.e-host.dataset.s));
     const bd=host.querySelector(".body");
     const y=bd.offsetTop+pct*bd.offsetHeight;
-    const running=host.hasAttribute("data-talk")&&+host.dataset.s<=m&&m<+host.dataset.e;
-    host.insertAdjacentHTML("beforeend",`<i class="nowdot" id="now" style="top:${y}px"></i><div class="nowline" style="top:${y}px"></div>`+
-      (running?`<span class="nowpill" style="top:${y}px">${short(+host.dataset.e-m)}<small>left</small></span>`:""));
+    host.insertAdjacentHTML("beforeend",`<i class="nowdot" id="now" style="top:${y}px"></i><div class="nowline" style="top:${y}px"></div>`);
   }
 
-  document.body.dataset.view=view;
+  document.body.dataset.view=mine?"mine":"all";
+  document.body.classList.toggle("is-shared",!!shared);
   day.textContent=dayLabel(now);
-  const n=choiceSlots.filter(sl=>sl.items.some(st)).length;
+  const n=choiceSlots.filter(sl=>sl.items.some(e=>picks[e.id])).length;
   count.textContent=`${n}/${choiceSlots.length} slots picked`;
   fabmine.textContent=`My picks · ${n}`;
-  fab.querySelector(".track").style.transform=`translateY(${mine?-20:0}px)`; // label slides like the status switch
+  fab.querySelector(".track").style.transform=`translateY(${view==="mine"?-20:0}px)`; // label slides like the status switch
 }
 
 function cycle(btn){
   const k=btn.dataset.cycle, i=(ST.indexOf(picks[k]||"")+1)%3;
-  ST[i]?picks[k]=ST[i]:delete picks[k]; save();
+  if(ST[i]){picks[k]=ST[i]; seen[k]=snap(BY_ID[k])} else {delete picks[k]; delete seen[k]}
+  save();
   // slide this control first, then re-render once the slide has played
   btn.dataset.i=i; btn.querySelector(".track").style.transform=`translateY(${-26*i}px)`;
   setTimeout(()=>{render(); if(modal.open) fillModal(k)},260);
 }
 
 function fillModal(k){
-  const e=E.find(x=>id(x)===k);
+  const e=BY_ID[k];
   document.getElementById("m-in").innerHTML=`
     <div class="m-top"><span class="room">${e.s}–${e.e} · ${roomOf(e)}</span><span style="display:flex;gap:10px;align-items:center">${en(e)}<button class="x" id="m-x" aria-label="Close">✕</button></span></div>
+    ${movedNote(e)}
     <h2 class="title">${esc(e.t)}</h2>
     ${people(e)}
     <div class="foot" style="margin-top:0">${tags(e)}${status(e)}</div>
-    <div class="desc">${e.d.split("\n").map(p=>`<p>${esc(p)}</p>`).join("")}</div>`;
+    <div class="desc">${e.d?e.d.split("\n").map(p=>`<p>${esc(p)}</p>`).join(""):"<p>No description on devfestka.de yet.</p>"}</div>`;
 }
-function openModal(k){fillModal(k); modal.showModal(); modal.focus(); modal.scrollTop=0} // focus the dialog, not the ✕
+function openModal(k){
+  fillModal(k); modal.showModal(); modal.focus(); modal.scrollTop=0; // focus the dialog, not the ✕
+  if(moved(BY_ID[k])){seen[k]=snap(BY_ID[k]); save()} // seen the move: clear the note from the next render on
+}
 function closeModal(){
-  if(matchMedia("(prefers-reduced-motion: reduce)").matches){modal.close();return}
-  modal.classList.add("closing");
-  setTimeout(()=>{modal.classList.remove("closing");modal.close()},170);
+  const done=()=>{modal.classList.remove("closing");modal.close();render()};
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches){done();return}
+  modal.classList.add("closing"); setTimeout(done,170);
 }
 
+let adoptArmed=null;
 sched.addEventListener("click",ev=>{
   const c=ev.target.closest("[data-cycle]"); if(c){cycle(c);return}
+  const d=ev.target.closest("[data-drop]"); if(d){delete picks[d.dataset.drop]; delete seen[d.dataset.drop]; save(); render(); return}
+  if(ev.target.closest("#unshare")){history.replaceState(null,"",location.pathname); shared=null; render(); return}
+  const a=ev.target.closest("#adopt");
+  if(a){
+    // replacing your own picks needs a second tap
+    if(!adoptArmed){a.textContent="Tap again to replace yours";adoptArmed=setTimeout(()=>{adoptArmed=null;render()},3000);return}
+    clearTimeout(adoptArmed); adoptArmed=null;
+    picks={...shared}; seen={}; for(const k in picks) if(BY_ID[k]) seen[k]=snap(BY_ID[k]);
+    save(); view="mine"; store(VKEY,view); history.replaceState(null,"",location.pathname); shared=null; render(); return;
+  }
   const o=ev.target.closest("[data-open]"); if(o) openModal(o.dataset.open);
 });
 sched.addEventListener("keydown",ev=>{if(ev.key==="Enter"&&ev.target.dataset.open) openModal(ev.target.dataset.open)});
@@ -321,31 +389,52 @@ modal.addEventListener("click",ev=>{
   if(ev.target===modal||ev.target.closest("#m-x")) closeModal();
 });
 modal.addEventListener("cancel",ev=>{ev.preventDefault();closeModal()});
+addEventListener("hashchange",()=>{readHash();render()});
 
 fab.addEventListener("click",()=>{
-  view=view==="mine"?"all":"mine"; try{localStorage.setItem(VKEY,view)}catch{}
+  if(shared){history.replaceState(null,"",location.pathname); shared=null}
+  view=view==="mine"?"all":"mine"; store(VKEY,view);
   render(); document.getElementById("now")?.scrollIntoView({block:"center",behavior:"smooth"});
 });
 let armed=null; // Clear needs a second tap so a stray tap at the event doesn't wipe the plan
 clear.onclick=()=>{
   if(!armed){clear.textContent="Tap again to clear";armed=setTimeout(()=>{armed=null;clear.textContent="Clear"},3000);return}
-  clearTimeout(armed);armed=null;clear.textContent="Clear";picks={};save();render();
+  clearTimeout(armed);armed=null;clear.textContent="Clear";picks={};seen={};save();render();
 };
-copy.onclick=async()=>{
-  const txt=SLOTS.map(sl=>{
-    const f=sl.items[0];
-    if(!pickable(sl)) return `${sl.s}  ${f.t}`;
-    const mark=sl.items.filter(st).sort(byStatus);
-    return `${sl.s}  `+(mark.length?mark.map(e=>`${st(e)==="going"?"Going":"Interested"}: ${e.t} (${roomOf(e)})`).join("  /  "):"—");
-  }).join("\n");
-  try{await navigator.clipboard.writeText(txt);copy.textContent="Copied"}catch{copy.textContent="Copy failed"}
-  setTimeout(()=>copy.textContent="Copy my plan",1500);
+
+// Share: the link carries the picks (#p=…); the text is the readable timeline. Native share sheet where there is one, clipboard otherwise.
+share.onclick=async()=>{
+  const code=encode(picks);
+  if(!code){share.textContent="Pick talks first";setTimeout(()=>share.textContent="Share my plan",1500);return}
+  const url=location.origin+location.pathname+"#p="+code;
+  const lines=choiceSlots.map(sl=>{
+    const mk=sl.items.filter(e=>picks[e.id]).sort((a,b)=>ST.indexOf(picks[a.id])-ST.indexOf(picks[b.id]));
+    return mk.length?`${sl.s}  ${mk.map((e,i)=>(i?"or ":"")+`${e.t} (${roomOf(e)})`).join(" / ")}`:null;
+  }).filter(Boolean);
+  const text=`My DevFest Karlsruhe plan\n\n${lines.join("\n")}`;
+  try{
+    if(navigator.share){await navigator.share({title:"My DevFest Karlsruhe plan",text,url});return}
+    await navigator.clipboard.writeText(text+"\n\n"+url); share.textContent="Copied";
+  }catch(err){if(err.name==="AbortError")return; share.textContent="Couldn't share"}
+  setTimeout(()=>share.textContent="Share my plan",1500);
 };
+
+// The schedule is re-scraped on GitHub during the event; an open page checks for a newer version and offers a reload.
+async function checkUpdate(){
+  try{
+    const html=await (await fetch("./",{cache:"no-store"})).text();
+    const h=html.match(/"hash": "([0-9a-f]+)"/);
+    if(h&&h[1]!==META.hash) upd.hidden=false;
+  }catch{} // offline: keep what we have
+}
+upd.onclick=()=>location.reload();
+synced.textContent=new Date(META.synced).toLocaleString("en-GB",{weekday:"short",hour:"2-digit",minute:"2-digit",hour12:false});
 
 render();
 document.getElementById("now")?.scrollIntoView({block:"center"});
 setInterval(render,30e3);
-document.addEventListener("visibilitychange",()=>{if(!document.hidden)render()});
+setInterval(checkUpdate,5*60e3);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){render();checkUpdate()}});
 addEventListener("resize",()=>render());
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
 </script>
