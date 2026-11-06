@@ -44,7 +44,7 @@ button{font:inherit;cursor:pointer;color:inherit}
 
 
 
-.talk.dim{opacity:.55}
+.talk.dim>*{opacity:.55} /* fade the content, keep the card opaque so the now line stays hidden behind it */
 .top{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .room{font:500 .72rem var(--f-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
 .en{font:500 .65rem/1 var(--f-mono);letter-spacing:.06em;padding:3px 5px;border:1px solid currentColor;border-radius:4px;opacity:.55}
@@ -101,10 +101,6 @@ body[data-view="mine"] .status .track span{color:var(--ink)}
 .fab .track{display:flex;flex-direction:column;transition:transform .25s ease}
 .fab .track span{height:20px;line-height:20px;white-space:nowrap}
 .talks.one{grid-template-columns:1fr}
-.stack{display:flex;flex-direction:column;gap:6px;min-width:0}
-.alt{border:1px dashed var(--line);background:none;border-radius:8px;padding:6px 10px;text-align:left;font-size:.85rem;color:var(--ink)}
-.alt span{color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;margin-right:4px}
-.alt i{color:var(--muted);font-style:normal}
 .free{background:var(--bg);display:flex;align-items:center;gap:12px;padding:10px 14px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);font-size:.85rem}
 .fx{display:flex;flex-direction:column;gap:2px;min-width:0}
 .free b{font-family:var(--f-display);font-weight:600;color:var(--ink);font-size:1rem}
@@ -237,11 +233,12 @@ const tags=e=>e.g?`<div class="tags">${e.g.split(", ").map(g=>`<span class="tag"
 const en=e=>e.l==="EN"?`<span class="en" title="Talk in English">EN</span>`:"";
 const status=e=>{if(shared)return "";const i=ST.indexOf(st(e));return `<button class="status" data-cycle="${e.id}" data-i="${i}" aria-label="Status: ${ST_LABEL[i]}. Tap to change.">
   <span class="win"><span class="track" style="transform:translateY(${-26*i}px)">${ST_LABEL.map(l=>`<span>${l}</span>`).join("")}</span></span></button>`};
-const movedNote=e=>{const v=moved(e);return v?`<span class="chg">Moved · was ${v.s} · ${esc(v.r)}</span>`:""};
+// only what changed: "was 11:00", "was Raum 2", or both
+const movedNote=e=>{const v=moved(e);if(!v)return "";const was=[v.s!==e.s&&v.s,v.r!==roomOf(e)&&esc(v.r)].filter(Boolean).join(" · ");return `<span class="chg">Moved · was ${was}</span>`};
 
 function card(e,dim){
   const s=st(e);
-  return `<article class="talk${dim&&!s?" dim":""}" data-st="${s}" data-open="${e.id}" tabindex="0">
+  return `<article class="talk${dim&&s!=="going"?" dim":""}" data-st="${s}" data-open="${e.id}" tabindex="0">
     <div class="top"><span class="room">${roomOf(e)}</span>${en(e)}</div>
     ${movedNote(e)}
     <h3 class="title">${esc(e.t)}</h3>
@@ -296,9 +293,9 @@ function render(){
     if(r.kind==="talks"){
       let body;
       if(mine){
-        const [main,...alts]=r.show;
-        body=`<div class="stack"><div class="talks one">${card(main,false)}</div>
-          ${alts.map(a=>`<button class="alt" data-open="${a.id}"><span>or</span> ${esc(a.t)} <i>· ${roomOf(a)}</i></button>`).join("")}</div>`;
+        // interested talks sit beside the going one, faded, the same way All talks shows them
+        const anyGoing=r.show.some(e=>st(e)==="going");
+        body=`<div class="talks${r.show.length===1?" one":""}" style="--cols:${r.show.length}">${r.show.map(e=>card(e,anyGoing)).join("")}</div>`;
       } else {
         const anyGoing=r.items.some(e=>st(e)==="going");
         body=`<div class="talks${r.items.length===1?" one":""}" style="--cols:${r.items.length}">${r.items.map(e=>card(e,anyGoing)).join("")}</div>`;
