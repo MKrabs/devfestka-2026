@@ -81,8 +81,8 @@ body[data-view="mine"] .status .track span{color:var(--ink)}
 .past{opacity:.45}
 /* slot = time header, timeline body (thin ruler on the left, cards beside it), end time */
 .slot{position:relative;padding-block:12px;padding-left:14px;border-top:1px solid var(--line)}
-.slot::before{content:"";position:absolute;left:-7px;top:-1px;bottom:0;width:9px;border-right:2px solid var(--line);
-  background:repeating-linear-gradient(to bottom,var(--line) 0 1px,transparent 1px 9px) left/7px 100% repeat-y} /* one unbroken line through every row; ticks hang left into the margin */
+.slot::before{content:"";position:absolute;left:-7px;top:10px;bottom:10px;width:9px;border:2px solid var(--line);border-left:0;
+  background:repeating-linear-gradient(to bottom,var(--line) 0 1px,transparent 1px 9px) left/7px 100% repeat-y} /* one ruler per row, start to end, capped at both ends; ticks hang left into the margin */
 .head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font:500 .85rem/1 var(--f-mono);color:var(--muted);margin-bottom:8px;font-variant-numeric:tabular-nums}
 .head b{font-weight:500;color:var(--ink)}
 .end{font:500 .8rem/1 var(--f-mono);color:var(--muted);margin-top:8px;opacity:.8}
