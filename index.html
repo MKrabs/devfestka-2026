@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f6f7fb" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#11141f" media="(prefers-color-scheme: dark)">
+<title>My DevFest Karlsruhe</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: one-day calendar, time gutter + three room columns, block height = duration, red line = now. */
+:root{
+  --bg:#f6f7fb; --surface:#ffffff; --ink:#151a2e; --muted:#636a86; --line:#e1e4ee;
+  --r1:#2449d6; --r1-ink:#ffffff; --r2:#d9e1ff; --plain:#eef0f6; --brk:#f0f1f6;
+  --now:#e3342f;
+  --f-display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible",ui-sans-serif,system-ui,sans-serif;
+  --ppm:2.2px; /* pixels per minute */
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#11141f; --surface:#191d2c; --ink:#e9ebf5; --muted:#9aa1bf; --line:#2a2f45;
+  --r1:#7f9cff; --r1-ink:#0d1020; --r2:#27325f; --plain:#1e2233; --brk:#161a28;
+  --now:#ff5a52; color-scheme:dark}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 var(--f-body);
+  padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));
+  padding-bottom:env(safe-area-inset-bottom,0px)}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--r1);outline-offset:2px}
+
+header{position:sticky;top:0;z-index:5;background:var(--bg);padding-top:max(14px,env(safe-area-inset-top,0px))}
+h1{font:800 1.7rem/1.05 var(--f-display);margin:0;letter-spacing:-.02em}
+.sub{color:var(--muted);font-size:.85rem;margin:4px 0 10px}
+.rooms{display:grid;grid-template-columns:40px repeat(3,minmax(0,1fr));gap:4px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.rooms span{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:center}
+
+.cal{position:relative;margin:8px 0 40px 40px}
+.hour{position:absolute;left:-40px;right:0;border-top:1px solid var(--line);font-size:.7rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.hour span{position:absolute;top:-.6em;left:0;background:var(--bg);padding-right:4px}
+.ev{position:absolute;border-radius:6px;padding:4px 6px;overflow:hidden;font-size:.78rem;line-height:1.2;text-align:left;border:1px solid transparent}
+.ev .t{font-weight:700;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:5;overflow:hidden}
+.ev .s{color:var(--muted);font-size:.7rem;margin-top:2px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.ev.wide{display:flex;gap:8px;align-items:baseline;background:var(--brk);color:var(--muted)}
+.ev.wide.plen{background:var(--surface);border-color:var(--line);color:var(--ink)}
+.ev.talk{background:var(--plain);color:var(--muted)}
+.ev.talk[data-rank="1"]{background:var(--r1);color:var(--r1-ink)}
+.ev.talk[data-rank="1"] .s{color:inherit;opacity:.8}
+.ev.talk[data-rank="2"]{background:var(--r2);color:var(--ink)}
+.ev.talk[data-rank="3"]{background:var(--surface);border:2px solid var(--r1);color:var(--ink)}
+.badge{float:right;margin:0 0 2px 4px;font-weight:700}
+
+.now{position:absolute;left:-40px;right:0;height:0;border-top:2px solid var(--now);z-index:3;pointer-events:none}
+.now::before{content:"";position:absolute;left:34px;top:-6px;width:10px;height:10px;border-radius:50%;background:var(--now)}
+.now span{position:absolute;left:0;top:-.75em;font-size:.68rem;font-weight:700;color:var(--now);background:var(--bg);font-variant-numeric:tabular-nums}
+
+dialog{margin:auto 0 0;width:100%;max-width:100%;border:0;border-radius:16px 16px 0 0;background:var(--surface);color:var(--ink);
+  padding:20px max(20px,env(safe-area-inset-left,0px)) max(20px,env(safe-area-inset-bottom,0px))}
+dialog::backdrop{background:rgb(0 0 0/.4)}
+dialog h2{font:700 1.2rem/1.2 var(--f-display);margin:0 0 6px;text-wrap:balance}
+dialog p{margin:0 0 4px;color:var(--muted)}
+.ranks{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}
+.ranks button{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:12px 0;font-size:1.2rem}
+.ranks button[aria-pressed="true"]{background:var(--r1);color:var(--r1-ink);border-color:var(--r1)}
+@media (min-width:700px){body{max-width:900px;margin:0 auto}dialog{max-width:520px;margin:auto auto 0}}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="day">Sat 7 Nov</h1>
+  <p class="sub">DevFest Karlsruhe · DHBW, Erzbergerstraße 121 · tap a talk to rank it</p>
+  <div class="rooms"><i></i><span>Audimax</span><span>Raum 1</span><span>Raum 2</span></div>
+</header>
+<div class="cal" id="cal"></div>
+
+<dialog id="sheet">
+  <h2 id="sh-t"></h2>
+  <p id="sh-s"></p>
+  <p id="sh-m"></p>
+  <div class="ranks" id="sh-r">
+    <button data-r="1">①</button><button data-r="2">②</button><button data-r="3">③</button><button data-r="0">✕</button>
+  </div>
+</dialog>
+
+<script>
+// [start, end, column (0-2, or -1 = all rooms), title, speaker, tags, kind]
+const E=[
+ ["09:00","09:35",-1,"Registrierung & Frühstück","Foyer","","brk"],
+ ["09:40","09:55",-1,"Welcome Notes","Audimax","","plen"],
+ ["10:00","10:45",-1,"Keynote: Trust by Design: Building Secure AI with Google Cloud (EN)","Katya Vinnichenko (Google), Luiz Carneiro (smapiot GmbH) · Audimax","","plen"],
+ ["11:00","11:45",0,"Chatless-AI – Realtime-Sprachinterfaces für Web und Mobile entwickeln","Sascha Lehmann · Thinktecture AG","AI, Web, Mobile"],
+ ["11:00","11:45",1,"Java 27 – Bessere Sprache, Bessere APIs, Bessere Laufzeit","Nicolai Parlog · Oracle","Java"],
+ ["11:00","11:45",2,"A Developer's Guide to the CRA","Grégoire Mercier · bluehands","Security"],
+ ["12:00","12:45",0,"Developers under attack – how to protect yourself (EN)","Christian Kühn · dmTECH","Security"],
+ ["12:00","12:45",1,"Beyond the Chatbot: Client-Side AI mit WebGPU, WebNN & In-Browser Inference","Marcel Bagemihl · Consid","AI, Web"],
+ ["12:00","12:45",2,"Was ihr über Git nicht wisst","Florian Schick · Schick Software Entwicklung","DevOps"],
+ ["12:45","13:55",-1,"Mittagspause","Foyer","","brk"],
+ ["14:00","14:45",0,"What's New in Web – Insights from TPAC 2026 (EN)","Christian Liebel · Thinktecture AG","Web, Architecture"],
+ ["14:00","14:45",1,"UX & Devs: Wo Verantwortung beginnt und endet","Miriam Schramm · UX/UI freelance","UX"],
+ ["14:00","14:45",2,"Agentic UI: Wenn KI Teil des Frontends wird","Rainer Hahnekamp, Murat Sari · Soverius AI","AI, Web"],
+ ["15:00","15:45",0,"The Impact of AI on Open Source Teams: Lessons from Angular (EN)","Matthieu Riegler · Angular Core Team","AI, Web"],
+ ["15:00","15:45",1,"Ein Modell, viele Zielplattformen: Was der offene KI-Standard ONNX heute leistet – und wo er an Grenzen stößt","Dr. Andreas Fehlner · ONNX Steering Committee","AI, Architecture"],
+ ["15:00","15:45",2,"Loop Engineering (EN)","Joe Reuter · Elastic","AI"],
+ ["16:00","16:45",0,"Codebase-Detox: Mit KI das Chaos beseitigen und mit Quality Gates den Standard halten","Daniel Sogl · SHI GmbH","AI, Clean Code"],
+ ["16:00","16:45",1,"The Web After the AI Revolution: How WebMCP, Gemma 4, and On-Device Runtimes Redefine the Browser (EN)","Kenneth Rohde Christiansen · Intel","AI, Web"],
+ ["16:00","16:45",2,"The Cross-Origin Storage API (EN)","Thomas Steiner · Google","Web"],
+ ["16:45","17:15",-1,"Pause","Foyer","","brk"],
+ ["17:20","18:05",0,"Sicherheitsnetze für den Einsatz von Coding Agenten","Ludwig Richter · andrena objects","Security, AI"],
+ ["17:20","18:05",1,"Mutanten unter uns: Wie gut sind deine Unit Tests wirklich?","Jasper Park · bluehands","Clean Code"],
+ ["17:20","18:05",2,"Was passiert eigentlich mit meiner Webseite, wenn sie in den Hintergrund tritt?","Matthias Reuter · inovex","Web"],
+ ["18:15","18:30",-1,"Closing Notes","Audimax","","plen"],
+ ["18:30","19:30",-1,"Netzwerken bei Snacks & Bier","Foyer · open end","","brk"],
+];
+const DAY_START=8*60+30, DAY_END=20*60+30; // grid range
+const EVENT_DATE=new Date(2026,10,7);
+const ROOMS=["Audimax","Raum 1","Raum 2"];
+const RANK=["","①","②","③"];
+const KEY="devfestka-2026-ranks";
+const min=s=>{const[h,m]=s.split(":");return h*60+ +m};
+const ppm=()=>parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--ppm"));
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let ranks={}; try{ranks=JSON.parse(localStorage.getItem(KEY))||{}}catch{}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(ranks))}catch{}};
+const id=e=>e[0]+"-"+e[2];
+
+function dayLabel(now){
+  const d=Math.round((new Date(now.getFullYear(),now.getMonth(),now.getDate())-EVENT_DATE)/864e5);
+  const rel={"-1":"Tomorrow","0":"Today","1":"Yesterday"}[d];
+  return (rel?rel+" · ":"")+"Sat 7 Nov"+(rel?"":" 2026");
+}
+
+function render(){
+  const p=ppm(); let h="";
+  for(let t=Math.ceil(DAY_START/60)*60;t<=DAY_END;t+=60)
+    h+=`<div class="hour" style="top:${(t-DAY_START)*p}px"><span>${String(t/60).padStart(2,"0")}:00</span></div>`;
+  for(const e of E){
+    const [s,en,col,title,spk,,kind="talk"]=e;
+    const top=(min(s)-DAY_START)*p, ht=(min(en)-min(s))*p-2;
+    const pos=col<0?"left:0;width:100%":`left:calc(${col}*(100% + 4px)/3);width:calc((100% - 8px)/3)`;
+    if(kind==="talk"){
+      const r=ranks[id(e)]||0;
+      h+=`<button class="ev talk" data-id="${id(e)}" data-rank="${r}" style="top:${top}px;height:${ht}px;${pos}">
+        ${r?`<span class="badge">${RANK[r]}</span>`:""}<div class="t">${esc(title)}</div><div class="s">${esc(spk)}</div></button>`;
+    } else {
+      h+=`<div class="ev wide ${kind}" style="top:${top}px;height:${ht}px;${pos}"><b>${esc(title)}</b><span class="s">${esc(spk)}</span></div>`;
+    }
+  }
+  h+=`<div class="now" id="now"><span></span></div>`;
+  cal.innerHTML=h;
+  cal.style.height=(DAY_END-DAY_START)*p+"px";
+  tick();
+}
+
+function tick(){
+  const now=new Date(), m=now.getHours()*60+now.getMinutes();
+  // ponytail: line pinned to the grid edge outside 08:30–20:30 so it's always findable
+  const c=Math.min(Math.max(m,DAY_START),DAY_END);
+  const line=document.getElementById("now");
+  line.style.top=(c-DAY_START)*ppm()+"px";
+  line.firstChild.textContent=now.toTimeString().slice(0,5);
+  day.textContent=dayLabel(now);
+}
+
+let open=null;
+cal.addEventListener("click",ev=>{
+  const b=ev.target.closest(".talk"); if(!b) return;
+  open=b.dataset.id; const e=E.find(x=>id(x)===open);
+  document.getElementById("sh-t").textContent=e[3];
+  document.getElementById("sh-s").textContent=e[4];
+  document.getElementById("sh-m").textContent=`${e[0]}–${e[1]} · ${ROOMS[e[2]]} · ${e[5]}`;
+  markRank(); sheet.showModal();
+});
+function markRank(){document.querySelectorAll("#sh-r button").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.r===(ranks[open]||0)&&b.dataset.r!=="0"))}
+document.getElementById("sh-r").addEventListener("click",ev=>{
+  const b=ev.target.closest("button"); if(!b) return;
+  const r=+b.dataset.r; r?ranks[open]=r:delete ranks[open];
+  save(); render(); sheet.close();
+});
+sheet.addEventListener("click",ev=>{if(ev.target===sheet)sheet.close()}); // tap backdrop closes
+
+render();
+document.getElementById("now").scrollIntoView({block:"center"});
+setInterval(tick,30e3);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)tick()});
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
+</script>
+</body>
+</html>
