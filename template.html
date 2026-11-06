@@ -81,8 +81,10 @@ body[data-view="mine"] .status .track span{color:var(--ink)}
 .past{opacity:.45}
 /* slot = time header, timeline body (thin ruler on the left, cards beside it), end time */
 .slot{position:relative;padding-block:12px;padding-left:14px;border-top:1px solid var(--line)}
-.slot::before{content:"";position:absolute;left:-7px;top:10px;bottom:10px;width:9px;border:2px solid var(--line);border-left:0;
-  background:repeating-linear-gradient(to bottom,var(--line) 0 1px,transparent 1px 9px) left/7px 100% repeat-y} /* one ruler per row, start to end, capped at both ends; ticks hang left into the margin */
+/* one ruler per row, start to end: a tick every 5 min (--n = minutes/5), a longer one every 15; ticks hang left into the margin */
+.slot::before{content:"";position:absolute;left:-7px;top:10px;bottom:10px;width:9px;border-right:2px solid var(--line);
+  background:repeating-linear-gradient(to bottom,var(--line) 0 1px,transparent 1px calc(300% / var(--n))) right/7px 100% no-repeat,
+    repeating-linear-gradient(to bottom,var(--line) 0 1px,transparent 1px calc(100% / var(--n))) right/4px 100% no-repeat}
 .head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font:500 .85rem/1 var(--f-mono);color:var(--muted);margin-bottom:8px;font-variant-numeric:tabular-nums}
 .head b{font-weight:500;color:var(--ink)}
 .end{font:500 .8rem/1 var(--f-mono);color:var(--muted);margin-top:8px;opacity:.8}
@@ -306,7 +308,7 @@ function render(){
         const anyGoing=r.items.some(e=>st(e)==="going");
         body=`<div class="talks${r.items.length===1?" one":""}" style="--cols:${r.items.length}">${r.items.map(e=>card(e,anyGoing)).join("")}</div>`;
       }
-      return `<section class="slot${past}" data-s="${r.s}" data-e="${r.e}" data-talk style="view-transition-name:s-${r.s}">
+      return `<section class="slot${past}" data-s="${r.s}" data-e="${r.e}" data-talk style="--n:${(r.e-r.s)/5};view-transition-name:s-${r.s}">
         <div class="head"><b>${hm(r.s)}</b><span>· ${dur(r.e-r.s)}</span>${r.s<=m&&m<r.e?`<span class="left">${short(r.e-m)} left</span>`:r===next?`<span class="soon">starts in ${short(r.s-m)}</span>`:""}</div>
         <div class="body">${body}</div><div class="end">${hm(r.e)}</div></section>`;
     }
@@ -319,7 +321,7 @@ function render(){
       const f=r.items[0];
       body=`<div class="fixed ${f.k==="brk"?"":"plenary"}" style="view-transition-name:f-${r.s}">${range(r)}<span><b>${esc(f.t)}</b> · ${esc(f.sp)}</span></div>`;
     }
-    return `<section class="slot${past}" data-s="${r.s}" data-e="${r.e}"><div class="body">${body}</div></section>`;
+    return `<section class="slot${past}" data-s="${r.s}" data-e="${r.e}" style="--n:${(r.e-r.s)/5}"><div class="body">${body}</div></section>`;
   }).join("");
   if(mine&&!rows.some(r=>r.kind==="talks")) sched.insertAdjacentHTML("beforeend",`<p class="empty">No picks yet. Switch to <b>All talks</b> and mark talks as Going or Interested.</p>`);
 
