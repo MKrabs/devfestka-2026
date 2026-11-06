@@ -35,15 +35,6 @@ button{font:inherit;cursor:pointer;color:inherit}
 :focus-visible{outline:3px solid var(--pick);outline-offset:2px}
 .count{font:500 .85rem var(--f-mono);color:var(--muted)}
 
-/* slot row + ruler */
-.slot{position:relative;display:grid;grid-template-columns:76px 1fr;gap:14px;padding-block:14px;border-top:1px solid var(--line)}
-.ruler{position:relative;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;padding-left:14px;
-  font:500 .8rem/1 var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
-.ruler::before{content:"";position:absolute;left:0;top:.45em;bottom:.45em;width:7px;border-left:2px solid var(--line);
-  background:repeating-linear-gradient(to bottom,var(--line) 0 1px,transparent 1px 9px) left/7px 100% no-repeat}
-.ruler .end{opacity:.75}
-.ruler .dur{font-size:.7rem;position:relative;margin-left:-14px}
-.ruler .dur span{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:2px 7px;white-space:nowrap}
 
 /* talk cards */
 .talks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:1fr;gap:10px}
@@ -84,28 +75,36 @@ button{font:inherit;cursor:pointer;color:inherit}
 .fixed b{font-family:var(--f-display);font-weight:600;color:var(--ink)}
 .keynote{cursor:pointer;display:flex;flex-direction:column;gap:8px;padding:12px 14px;align-self:stretch}
 .past{opacity:.45}
-.slot.tall{min-height:132px} /* room for start, duration and end on the ruler */
+/* slot = time header, timeline body (thin ruler on the left, cards beside it), end time */
+.slot{position:relative;padding-block:12px;border-top:1px solid var(--line)}
+.head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font:500 .85rem/1 var(--f-mono);color:var(--muted);margin-bottom:8px;font-variant-numeric:tabular-nums}
+.head b{font-weight:500;color:var(--ink)}
+.end{font:500 .8rem/1 var(--f-mono);color:var(--muted);margin-top:8px;opacity:.8}
+.body{position:relative;padding-left:20px}
+.body::before{content:"";position:absolute;left:5px;top:0;bottom:0;width:7px;border-left:2px solid var(--line);
+  background:repeating-linear-gradient(to bottom,var(--line) 0 1px,transparent 1px 9px) left/7px 100% no-repeat}
+.ftime{font:500 .78rem var(--f-mono);color:var(--muted);margin-right:8px;font-variant-numeric:tabular-nums}
+.soon{font:700 .7rem/1 var(--f-body);padding:4px 8px;border-radius:999px;background:var(--ink);color:var(--bg)}
+.nowdot{position:absolute;left:1px;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:var(--now);box-shadow:0 0 0 3px var(--bg);z-index:4;pointer-events:none}
+.nowpill{position:absolute;left:-12px;margin-top:-38px;z-index:4;display:flex;flex-direction:column;align-items:center;padding:4px 7px;border-radius:8px;background:var(--now);color:#fff;font:700 .72rem/1.05 var(--f-body);pointer-events:none;box-shadow:0 0 0 2px var(--bg)}
+.nowpill small{font-size:.6rem;font-weight:400;opacity:.9}
+.nowline{position:absolute;left:12px;right:0;height:0;border-top:2px solid var(--now);z-index:0;pointer-events:none}
+.fab{position:fixed;z-index:20;left:max(16px,env(safe-area-inset-left,0px));bottom:max(16px,calc(env(safe-area-inset-bottom,0px) + 8px));
+  display:flex;align-items:center;gap:6px;height:40px;padding:0 14px 0 10px;border:0;border-radius:999px;background:var(--ink);color:var(--bg);
+  font-weight:700;font-size:.85rem;box-shadow:0 6px 20px rgb(0 0 0/.22)}
+.fab svg{flex:none}
+.fab .win{display:block;height:20px;overflow:hidden}
+.fab .track{display:flex;flex-direction:column;transition:transform .25s ease}
+.fab .track span{height:20px;line-height:20px;white-space:nowrap}
 .talks.one{grid-template-columns:1fr}
 .stack{display:flex;flex-direction:column;gap:6px;min-width:0}
 .alt{border:1px dashed var(--line);background:none;border-radius:8px;padding:6px 10px;text-align:left;font-size:.85rem;color:var(--ink)}
 .alt span{color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;margin-right:4px}
 .alt i{color:var(--muted);font-style:normal}
-.free{background:var(--bg);align-self:center;display:flex;flex-direction:column;gap:2px;padding:10px 14px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);font-size:.85rem}
+.free{background:var(--bg);display:flex;flex-direction:column;gap:2px;padding:10px 14px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);font-size:.85rem}
 .free b{font-family:var(--f-display);font-weight:600;color:var(--ink);font-size:1rem}
 .free .live{align-self:flex-start;margin-bottom:4px;font:700 .68rem/1 var(--f-body);padding:4px 7px;border-radius:999px;background:var(--now);color:#fff}
-.ruler .dur.live span,.ruler .dur.soon span{display:inline-flex;flex-direction:column;align-items:center;gap:1px;border-radius:8px;padding:4px 7px;font:700 .72rem/1.05 var(--f-body);border:0}
-.ruler .dur.live span{background:var(--now);color:#fff}
-.ruler .dur.soon span{background:var(--ink);color:var(--bg)}
-.ruler .dur small{font-size:.6rem;font-weight:400;opacity:.85}
 .talk,.fixed,.free{position:relative;z-index:1} /* the now line runs behind cards, visible only in the gaps */
-.nowdot{position:absolute;left:-5px;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:var(--now);box-shadow:0 0 0 3px var(--bg);z-index:3;pointer-events:none}
-.nowline{position:absolute;left:90px;right:0;height:0;border-top:2px solid var(--now);z-index:0;pointer-events:none}
-.empty{color:var(--muted);padding:24px 0;border-top:1px solid var(--line);margin:0}
-.fab{position:fixed;z-index:20;left:max(16px,env(safe-area-inset-left,0px));bottom:max(16px,calc(env(safe-area-inset-bottom,0px) + 8px));
-  display:flex;padding:4px;gap:2px;border-radius:999px;background:var(--surface);border:1px solid var(--line);box-shadow:0 6px 24px rgb(0 0 0/.18)}
-.fab button{border:0;border-radius:999px;padding:10px 16px;background:none;color:var(--muted);font-weight:700;font-size:.9rem;min-height:44px}
-.fab button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
-.fab b{display:inline-block;min-width:1.4em;margin-left:4px;padding:1px 6px;border-radius:999px;background:var(--pick);color:var(--pick-ink);font-size:.75rem}
 .note{color:var(--muted);font-size:.85rem;margin-top:28px}
 
 /* description modal */
@@ -128,7 +127,7 @@ dialog .co{font-size:.82rem;white-space:normal}
 .desc{font-size:.95rem;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
 .desc p{margin:0 0 10px}
 
-@media (max-width:760px){.nowline{display:none}.talks{grid-template-columns:1fr}.slot{grid-template-columns:62px 1fr;gap:10px}.ruler{padding-left:11px;font-size:.74rem}.ruler .dur{margin-left:-11px}}
+@media (max-width:760px){.nowline{display:none}.talks{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -148,7 +147,7 @@ dialog .co{font-size:.82rem;white-space:normal}
   <main id="sched"></main>
   <p class="note">Source: devfestka.de schedule, talks and speakers pages, fetched 6 Nov 2026.</p>
 </div>
-<nav class="fab" id="fab" aria-label="View"><button data-view="all">All</button><button data-view="mine">My picks<b id="fabn">0</b></button></nav>
+<button class="fab" id="fab" aria-label="Switch view"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h16l-5-5"/><path d="M20 15H4l5 5"/></svg><span class="win"><span class="track"><span>All talks</span><span id="fabmine">My picks</span></span></span></button>
 <dialog id="modal" tabindex="-1"><div class="m-in" id="m-in"></div></dialog>
 
 <script>
@@ -231,14 +230,12 @@ function render(){
   const mine=view==="mine", rows=mine?rowsMine():rowsAll();
   const next=rows.find(r=>r.kind==="talks"&&r.s>m);
   const short=d=>d<60?`${d} min`:d%60&&d<600?`${Math.floor(d/60)} h ${d%60}`:`${Math.round(d/60)} h`;
-  // the ruler's duration label doubles as the live indicator: time left in the running slot, countdown to the next one
-  const rulerMid=r=>(r.s<=m&&m<r.e)?`<span class="dur live"><span>${short(r.e-m)}<small>left</small></span></span>`:
-    r===next?`<span class="dur soon"><span><small>starts in</small>${short(r.s-m)}</span></span>`:`<span class="dur"><span>${dur(r.e-r.s)}</span></span>`;
+  const range=r=>`<span class="ftime">${hm(r.s)}–${hm(r.e)}</span>`;
 
   sched.innerHTML=rows.map(r=>{
-    let body, tall=false;
+    const past=today&&r.e<=m?" past":"";
     if(r.kind==="talks"){
-      tall=true;
+      let body;
       if(mine){
         const [main,...alts]=r.show;
         body=`<div class="stack"><div class="talks one">${card(main,false)}</div>
@@ -247,18 +244,21 @@ function render(){
         const anyGoing=r.items.some(e=>st(e)==="going");
         body=`<div class="talks${r.items.length===1?" one":""}">${r.items.map(e=>card(e,anyGoing)).join("")}</div>`;
       }
-    } else if(r.kind==="free"){
+      return `<section class="slot${past}" data-s="${r.s}" data-e="${r.e}" data-talk>
+        <div class="head"><b>${hm(r.s)}</b><span>· ${dur(r.e-r.s)}</span>${r===next?`<span class="soon">starts in ${short(r.s-m)}</span>`:""}</div>
+        <div class="body">${body}</div><div class="end">${hm(r.e)}</div></section>`;
+    }
+    let body;
+    if(r.kind==="free"){
       const nowIn=r.s<=m&&m<r.e;
-      body=`<div class="free">${nowIn?`<span class="live">Now · free until ${hm(r.e)}</span>`:""}<b>Free · ${dur(r.e-r.s)}</b>
+      body=`<div class="free">${nowIn?`<span class="live">Now · free until ${hm(r.e)}</span>`:""}<b>${range(r)}Free · ${dur(r.e-r.s)}</b>
         ${r.brks.length?`<span>includes ${r.brks.map(sl=>`${esc(sl.items[0].t)} ${sl.s}–${sl.e}`).join(", ")}</span>`:""}</div>`;
     } else {
       const f=r.items[0];
-      body=`<div class="fixed ${f.k==="brk"?"":"plenary"}"><b>${esc(f.t)}</b> · ${esc(f.sp)}</div>`;
+      body=`<div class="fixed ${f.k==="brk"?"":"plenary"}">${range(r)}<b>${esc(f.t)}</b> · ${esc(f.sp)}</div>`;
     }
-    const past=today&&r.e<=m;
-    return `<section class="slot${tall?" tall":""}${past?" past":""}" data-s="${r.s}" data-e="${r.e}">
-      <div class="ruler"><span>${hm(r.s)}</span>${tall?rulerMid(r):""}<span class="end">${hm(r.e)}</span></div>${body}</section>`;
-  }).join("") || "";
+    return `<section class="slot${past}" data-s="${r.s}" data-e="${r.e}"><div class="body">${body}</div></section>`;
+  }).join("");
   if(mine&&!rows.some(r=>r.kind==="talks")) sched.insertAdjacentHTML("afterbegin",`<p class="empty">No picks yet. Switch to <b>All</b> and mark talks as Going or Interested.</p>`);
 
   // Now marker: a dot on the running row's ruler (top of the next row when between rows), plus a line across the cards on wide screens.
@@ -266,16 +266,18 @@ function render(){
   const host=secs.find(s=>m<+s.dataset.e)||secs.at(-1);
   if(host){
     const pct=m>=+host.dataset.e?1:Math.max(0,(m-host.dataset.s)/(host.dataset.e-host.dataset.s));
-    const ru=host.querySelector(".ruler");
-    const y=ru.offsetTop+pct*ru.offsetHeight;
-    host.insertAdjacentHTML("beforeend",`<i class="nowdot" id="now" style="top:${y}px"></i><div class="nowline" style="top:${y}px"></div>`);
+    const bd=host.querySelector(".body");
+    const y=bd.offsetTop+pct*bd.offsetHeight;
+    const running=host.hasAttribute("data-talk")&&+host.dataset.s<=m&&m<+host.dataset.e;
+    host.insertAdjacentHTML("beforeend",`<i class="nowdot" id="now" style="top:${y}px"></i><div class="nowline" style="top:${y}px"></div>`+
+      (running?`<span class="nowpill" style="top:${y}px">${short(+host.dataset.e-m)}<small>left</small></span>`:""));
   }
 
   day.textContent=dayLabel(now);
   const n=choiceSlots.filter(sl=>sl.items.some(st)).length;
   count.textContent=`${n}/${choiceSlots.length} slots picked`;
-  fabn.textContent=n;
-  document.querySelectorAll("#fab button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.view===view));
+  fabmine.textContent=`My picks · ${n}`;
+  fab.querySelector(".track").style.transform=`translateY(${mine?-20:0}px)`; // label slides like the status switch
 }
 
 function cycle(btn){
@@ -313,9 +315,8 @@ modal.addEventListener("click",ev=>{
 });
 modal.addEventListener("cancel",ev=>{ev.preventDefault();closeModal()});
 
-fab.addEventListener("click",ev=>{
-  const b=ev.target.closest("[data-view]"); if(!b||b.dataset.view===view) return;
-  view=b.dataset.view; try{localStorage.setItem(VKEY,view)}catch{}
+fab.addEventListener("click",()=>{
+  view=view==="mine"?"all":"mine"; try{localStorage.setItem(VKEY,view)}catch{}
   render(); document.getElementById("now")?.scrollIntoView({block:"center",behavior:"smooth"});
 });
 let armed=null; // Clear needs a second tap so a stray tap at the event doesn't wipe the plan
