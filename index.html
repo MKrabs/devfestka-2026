@@ -22,7 +22,7 @@
   color-scheme:dark}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 var(--f-body)}
-.wrap{max-width:1100px;margin:0 auto;padding-block:max(28px,env(safe-area-inset-top,0px)) 64px;
+.wrap{max-width:1100px;margin:0 auto;padding-block:max(28px,env(safe-area-inset-top,0px)) 120px;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 header{display:flex;flex-wrap:wrap;gap:16px 24px;align-items:end;justify-content:space-between;margin-bottom:24px}
 h1{font:800 clamp(2rem,5vw,3.2rem)/1 var(--f-display);margin:0;text-wrap:balance;letter-spacing:-.02em}
@@ -43,7 +43,7 @@ button{font:inherit;cursor:pointer;color:inherit}
   background:repeating-linear-gradient(to bottom,var(--line) 0 1px,transparent 1px 9px) left/7px 100% no-repeat}
 .ruler .end{opacity:.75}
 .ruler .dur{font-size:.7rem;position:relative;margin-left:-14px}
-.ruler .dur span{background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:2px 7px;white-space:nowrap}
+.ruler .dur span{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:2px 7px;white-space:nowrap}
 
 /* talk cards */
 .talks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:1fr;gap:10px}
@@ -67,7 +67,7 @@ button{font:inherit;cursor:pointer;color:inherit}
 .co{display:block;font-size:.76rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:end;gap:8px;padding-top:4px}
 .tags{display:flex;flex-wrap:wrap;gap:4px}
-.tag{font-size:.72rem;padding:1px 8px;border-radius:999px;color:#151a33;background:color-mix(in srgb,var(--c) 22%,#ffffff)}
+.tag{font-size:.72rem;padding:1px 8px;border-radius:999px;color:var(--ink);background:color-mix(in srgb,var(--c) 24%,var(--surface))}
 
 /* status carousel: tap to move to the next state */
 .status{flex:none;display:block;border:0;background:none;padding:0;color:inherit}
@@ -84,11 +84,28 @@ button{font:inherit;cursor:pointer;color:inherit}
 .fixed b{font-family:var(--f-display);font-weight:600;color:var(--ink)}
 .keynote{cursor:pointer;display:flex;flex-direction:column;gap:8px;padding:12px 14px;align-self:stretch}
 .past{opacity:.45}
-body.mine .talk[data-st=""]{display:none}
-body.mine .talks{grid-template-columns:1fr;grid-auto-rows:auto}
-.now{position:absolute;left:0;right:0;height:0;border-top:2px solid var(--now);z-index:2;pointer-events:none}
-.now::before{content:"";position:absolute;left:-5px;top:-6px;width:10px;height:10px;border-radius:50%;background:var(--now)}
-.now span{position:absolute;left:10px;top:-.75em;padding:0 4px;font:500 .75rem var(--f-mono);color:var(--now);background:var(--bg)}
+.slot.tall{min-height:132px} /* room for start, duration and end on the ruler */
+.talks.one{grid-template-columns:1fr}
+.stack{display:flex;flex-direction:column;gap:6px;min-width:0}
+.alt{border:1px dashed var(--line);background:none;border-radius:8px;padding:6px 10px;text-align:left;font-size:.85rem;color:var(--ink)}
+.alt span{color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;margin-right:4px}
+.alt i{color:var(--muted);font-style:normal}
+.free{background:var(--bg);align-self:center;display:flex;flex-direction:column;gap:2px;padding:10px 14px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);font-size:.85rem}
+.free b{font-family:var(--f-display);font-weight:600;color:var(--ink);font-size:1rem}
+.free .live{align-self:flex-start;margin-bottom:4px;font:700 .68rem/1 var(--f-body);padding:4px 7px;border-radius:999px;background:var(--now);color:#fff}
+.ruler .dur.live span,.ruler .dur.soon span{display:inline-flex;flex-direction:column;align-items:center;gap:1px;border-radius:8px;padding:4px 7px;font:700 .72rem/1.05 var(--f-body);border:0}
+.ruler .dur.live span{background:var(--now);color:#fff}
+.ruler .dur.soon span{background:var(--ink);color:var(--bg)}
+.ruler .dur small{font-size:.6rem;font-weight:400;opacity:.85}
+.talk,.fixed,.free{position:relative;z-index:1} /* the now line runs behind cards, visible only in the gaps */
+.nowdot{position:absolute;left:-5px;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:var(--now);box-shadow:0 0 0 3px var(--bg);z-index:3;pointer-events:none}
+.nowline{position:absolute;left:90px;right:0;height:0;border-top:2px solid var(--now);z-index:0;pointer-events:none}
+.empty{color:var(--muted);padding:24px 0;border-top:1px solid var(--line);margin:0}
+.fab{position:fixed;z-index:20;left:max(16px,env(safe-area-inset-left,0px));bottom:max(16px,calc(env(safe-area-inset-bottom,0px) + 8px));
+  display:flex;padding:4px;gap:2px;border-radius:999px;background:var(--surface);border:1px solid var(--line);box-shadow:0 6px 24px rgb(0 0 0/.18)}
+.fab button{border:0;border-radius:999px;padding:10px 16px;background:none;color:var(--muted);font-weight:700;font-size:.9rem;min-height:44px}
+.fab button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.fab b{display:inline-block;min-width:1.4em;margin-left:4px;padding:1px 6px;border-radius:999px;background:var(--pick);color:var(--pick-ink);font-size:.75rem}
 .note{color:var(--muted);font-size:.85rem;margin-top:28px}
 
 /* description modal */
@@ -111,7 +128,7 @@ dialog .co{font-size:.82rem;white-space:normal}
 .desc{font-size:.95rem;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
 .desc p{margin:0 0 10px}
 
-@media (max-width:760px){.talks{grid-template-columns:1fr}.slot{grid-template-columns:62px 1fr;gap:10px}.ruler{padding-left:11px;font-size:.74rem}.ruler .dur{margin-left:-11px}}
+@media (max-width:760px){.nowline{display:none}.talks{grid-template-columns:1fr}.slot{grid-template-columns:62px 1fr;gap:10px}.ruler{padding-left:11px;font-size:.74rem}.ruler .dur{margin-left:-11px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -124,7 +141,6 @@ dialog .co{font-size:.82rem;white-space:normal}
     </div>
     <div class="tools">
       <span class="count" id="count"></span>
-      <button class="btn" id="mine" aria-pressed="false">Only my picks</button>
       <button class="btn" id="copy">Copy my plan</button>
       <button class="btn" id="clear">Clear</button>
     </div>
@@ -132,6 +148,7 @@ dialog .co{font-size:.82rem;white-space:normal}
   <main id="sched"></main>
   <p class="note">Source: devfestka.de schedule, talks and speakers pages, fetched 6 Nov 2026.</p>
 </div>
+<nav class="fab" id="fab" aria-label="View"><button data-view="all">All</button><button data-view="mine">My picks<b id="fabn">0</b></button></nav>
 <dialog id="modal" tabindex="-1"><div class="m-in" id="m-in"></div></dialog>
 
 <script>
@@ -140,8 +157,10 @@ const EVENT_DATE=new Date(2026,10,7);
 const ROOMS=["Audimax","Raum 1","Raum 2"];
 const ST=["","going","interested"], ST_LABEL=["Not set","Going","Interested"];
 const TAG={"AI":"ai","Web":"web","Mobile":"mobile","Security":"sec","Java":"java","DevOps":"ops","UX":"ux","Clean Code":"clean","Architecture":"arch"};
-const KEY="devfestka-2026-ranks";
+const KEY="devfestka-2026-ranks", VKEY="devfestka-2026-view";
 const min=s=>{const[h,m]=s.split(":");return h*60+ +m};
+const hm=m=>`${String(Math.floor(m/60)).padStart(2,"0")}:${String(m%60).padStart(2,"0")}`;
+const dur=d=>d<60?`${d} min`:`${Math.floor(d/60)} h`+(d%60?` ${d%60} min`:"");
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const id=e=>e.s+"-"+e.c;
 let picks={};
@@ -150,10 +169,13 @@ try{
   for(const k in raw){const v=raw[k]; picks[k]=v===1?"going":(v===2||v===3)?"interested":v} // migrate old ①②③
 }catch{}
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(picks))}catch{}};
+let view="all"; try{view=localStorage.getItem(VKEY)||"all"}catch{}
 const st=e=>picks[id(e)]||"";
+const byStatus=(a,b)=>ST.indexOf(st(a))-ST.indexOf(st(b)); // going before interested
 
 const SLOTS=[]; for(const e of E){const last=SLOTS.at(-1); last&&last.s===e.s?last.items.push(e):SLOTS.push({s:e.s,e:e.e,items:[e]})}
-const choiceSlots=SLOTS.filter(x=>x.items[0].k==="talk");
+const pickable=sl=>["talk","key"].includes(sl.items[0].k);
+const choiceSlots=SLOTS.filter(pickable);
 
 function dayOffset(now){return Math.round((new Date(now.getFullYear(),now.getMonth(),now.getDate())-EVENT_DATE)/864e5)}
 function dayLabel(now){
@@ -161,9 +183,10 @@ function dayLabel(now){
   return (rel?rel+" · ":"")+"Sat 7 Nov"+(rel?"":" 2026");
 }
 
+const roomOf=e=>e.c<0?"Keynote · Audimax":ROOMS[e.c];
 const initials=n=>n.replace(/^Dr\. /,"").split(" ").map(w=>w[0]).slice(0,2).join("");
 const people=e=>`<div class="people">${e.who.map(([n,co,img])=>`<div class="person">
-  <span class="av">${initials(n)}<img src="${img}" alt="" loading="lazy" onerror="this.remove()"></span>
+  <span class="av">${initials(n)}<img src="${img}" alt="" onerror="this.remove()"></span>
   <span class="who"><span class="name">${esc(n)}</span><span class="co">${esc(co)}</span></span></div>`).join("")}</div>`;
 const tags=e=>`<div class="tags">${e.g.split(", ").map(g=>`<span class="tag" style="--c:var(--t-${TAG[g]})">${g}</span>`).join("")}</div>`;
 const en=e=>e.l==="EN"?`<span class="en" title="Talk in English">EN</span>`:"";
@@ -173,48 +196,86 @@ const status=e=>{const i=ST.indexOf(st(e));return `<button class="status" data-c
 function card(e,dim){
   const s=st(e);
   return `<article class="talk${dim&&!s?" dim":""}" data-st="${s}" data-open="${id(e)}" tabindex="0">
-    <div class="top"><span class="room">${ROOMS[e.c]}</span>${en(e)}</div>
+    <div class="top"><span class="room">${roomOf(e)}</span>${en(e)}</div>
     <h3 class="title">${esc(e.t)}</h3>
     ${people(e)}
     <div class="foot">${tags(e)}${status(e)}</div>
   </article>`;
 }
 
-function ruler(sl,big){
-  const d=min(sl.e)-min(sl.s);
-  return `<div class="ruler"><span>${sl.s}</span>${big?`<span class="dur"><span>${d} min</span></span>`:""}<span class="end">${sl.e}</span></div>`;
+// Rows: {s,e (minutes), kind:"talks"|"fixed"|"free", ...}. "All" = every slot; "mine" = picked slots, plenaries, and collapsed free time.
+function rowsAll(){
+  return SLOTS.map(sl=>({s:min(sl.s),e:min(sl.e),kind:pickable(sl)?"talks":"fixed",items:sl.items,show:sl.items}));
+}
+function rowsMine(){
+  const rows=[]; let run=[], prevEnd=null;
+  const flush=nextStart=>{
+    if(!run.length) return;
+    if(run.every(sl=>sl.items[0].k==="brk")) run.forEach(sl=>rows.push({s:min(sl.s),e:min(sl.e),kind:"fixed",items:sl.items}));
+    else rows.push({s:prevEnd??min(run[0].s),e:nextStart??min(run.at(-1).e),kind:"free",brks:run.filter(sl=>sl.items[0].k==="brk")});
+    run=[];
+  };
+  for(const sl of SLOTS){
+    const k=sl.items[0].k;
+    if(k==="plen"){flush(min(sl.s));rows.push({s:min(sl.s),e:min(sl.e),kind:"fixed",items:sl.items});prevEnd=min(sl.e);continue}
+    const picked=pickable(sl)?sl.items.filter(st).sort(byStatus):[];
+    if(picked.length){flush(min(sl.s));rows.push({s:min(sl.s),e:min(sl.e),kind:"talks",items:sl.items,show:picked});prevEnd=min(sl.e)}
+    else run.push(sl);
+  }
+  flush(null);
+  return rows;
 }
 
 function render(){
-  sched.innerHTML=SLOTS.map(sl=>{
-    const f=sl.items[0];
-    let body;
-    if(f.k==="talk"){
-      const anyGoing=sl.items.some(e=>st(e)==="going");
-      body=`<div class="talks">${sl.items.map(e=>card(e,anyGoing)).join("")}</div>`;
-    } else if(f.k==="key"){
-      body=`<article class="fixed plenary keynote" data-open="${id(f)}" tabindex="0"><div class="top"><span class="room">Keynote · Audimax</span>${en(f)}</div>
-        <h3 class="title">${esc(f.t)}</h3>${people(f)}</article>`;
+  const now=new Date(), m=now.getHours()*60+now.getMinutes(), today=dayOffset(now)===0;
+  const mine=view==="mine", rows=mine?rowsMine():rowsAll();
+  const next=rows.find(r=>r.kind==="talks"&&r.s>m);
+  const short=d=>d<60?`${d} min`:d%60&&d<600?`${Math.floor(d/60)} h ${d%60}`:`${Math.round(d/60)} h`;
+  // the ruler's duration label doubles as the live indicator: time left in the running slot, countdown to the next one
+  const rulerMid=r=>(r.s<=m&&m<r.e)?`<span class="dur live"><span>${short(r.e-m)}<small>left</small></span></span>`:
+    r===next?`<span class="dur soon"><span><small>starts in</small>${short(r.s-m)}</span></span>`:`<span class="dur"><span>${dur(r.e-r.s)}</span></span>`;
+
+  sched.innerHTML=rows.map(r=>{
+    let body, tall=false;
+    if(r.kind==="talks"){
+      tall=true;
+      if(mine){
+        const [main,...alts]=r.show;
+        body=`<div class="stack"><div class="talks one">${card(main,false)}</div>
+          ${alts.map(a=>`<button class="alt" data-open="${id(a)}"><span>or</span> ${esc(a.t)} <i>· ${roomOf(a)}</i></button>`).join("")}</div>`;
+      } else {
+        const anyGoing=r.items.some(e=>st(e)==="going");
+        body=`<div class="talks${r.items.length===1?" one":""}">${r.items.map(e=>card(e,anyGoing)).join("")}</div>`;
+      }
+    } else if(r.kind==="free"){
+      const nowIn=r.s<=m&&m<r.e;
+      body=`<div class="free">${nowIn?`<span class="live">Now · free until ${hm(r.e)}</span>`:""}<b>Free · ${dur(r.e-r.s)}</b>
+        ${r.brks.length?`<span>includes ${r.brks.map(sl=>`${esc(sl.items[0].t)} ${sl.s}–${sl.e}`).join(", ")}</span>`:""}</div>`;
     } else {
+      const f=r.items[0];
       body=`<div class="fixed ${f.k==="brk"?"":"plenary"}"><b>${esc(f.t)}</b> · ${esc(f.sp)}</div>`;
     }
-    return `<section class="slot" data-s="${min(sl.s)}" data-e="${min(sl.e)}">${ruler(sl,f.k==="talk"||f.k==="key")}${body}</section>`;
-  }).join("");
-  count.textContent=`${choiceSlots.filter(sl=>sl.items.some(e=>st(e))).length}/${choiceSlots.length} slots picked`;
-  tick();
-}
+    const past=today&&r.e<=m;
+    return `<section class="slot${tall?" tall":""}${past?" past":""}" data-s="${r.s}" data-e="${r.e}">
+      <div class="ruler"><span>${hm(r.s)}</span>${tall?rulerMid(r):""}<span class="end">${hm(r.e)}</span></div>${body}</section>`;
+  }).join("") || "";
+  if(mine&&!rows.some(r=>r.kind==="talks")) sched.insertAdjacentHTML("afterbegin",`<p class="empty">No picks yet. Switch to <b>All</b> and mark talks as Going or Interested.</p>`);
 
-function tick(){
-  const now=new Date(), m=now.getHours()*60+now.getMinutes();
-  day.textContent=dayLabel(now);
-  const today=dayOffset(now)===0;
+  // Now marker: a dot on the running row's ruler (top of the next row when between rows), plus a line across the cards on wide screens.
   const secs=[...sched.querySelectorAll(".slot")];
-  secs.forEach(s=>s.classList.toggle("past",today&&+s.dataset.e<=m));
-  // now line: inside the running slot at its share of the duration; in a gap, at the top of the next slot; after the day, at the bottom
-  document.getElementById("now")?.remove();
   const host=secs.find(s=>m<+s.dataset.e)||secs.at(-1);
-  const pct=m>=+host.dataset.e?100:Math.max(0,(m-host.dataset.s)/(host.dataset.e-host.dataset.s)*100);
-  host.insertAdjacentHTML("beforeend",`<div class="now" id="now" style="top:${pct}%"><span>${now.toTimeString().slice(0,5)}</span></div>`);
+  if(host){
+    const pct=m>=+host.dataset.e?1:Math.max(0,(m-host.dataset.s)/(host.dataset.e-host.dataset.s));
+    const ru=host.querySelector(".ruler");
+    const y=ru.offsetTop+pct*ru.offsetHeight;
+    host.insertAdjacentHTML("beforeend",`<i class="nowdot" id="now" style="top:${y}px"></i><div class="nowline" style="top:${y}px"></div>`);
+  }
+
+  day.textContent=dayLabel(now);
+  const n=choiceSlots.filter(sl=>sl.items.some(st)).length;
+  count.textContent=`${n}/${choiceSlots.length} slots picked`;
+  fabn.textContent=n;
+  document.querySelectorAll("#fab button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.view===view));
 }
 
 function cycle(btn){
@@ -228,10 +289,10 @@ function cycle(btn){
 function fillModal(k){
   const e=E.find(x=>id(x)===k);
   document.getElementById("m-in").innerHTML=`
-    <div class="m-top"><span class="room">${e.s}–${e.e} · ${e.c<0?"Keynote · Audimax":ROOMS[e.c]}</span><span style="display:flex;gap:10px;align-items:center">${en(e)}<button class="x" id="m-x" aria-label="Close">✕</button></span></div>
+    <div class="m-top"><span class="room">${e.s}–${e.e} · ${roomOf(e)}</span><span style="display:flex;gap:10px;align-items:center">${en(e)}<button class="x" id="m-x" aria-label="Close">✕</button></span></div>
     <h2 class="title">${esc(e.t)}</h2>
     ${people(e)}
-    <div class="foot" style="margin-top:0">${tags(e)}${e.k==="talk"?status(e):""}</div>
+    <div class="foot" style="margin-top:0">${tags(e)}${status(e)}</div>
     <div class="desc">${e.d.split("\n").map(p=>`<p>${esc(p)}</p>`).join("")}</div>`;
 }
 function openModal(k){fillModal(k); modal.showModal(); modal.focus(); modal.scrollTop=0} // focus the dialog, not the ✕
@@ -252,7 +313,11 @@ modal.addEventListener("click",ev=>{
 });
 modal.addEventListener("cancel",ev=>{ev.preventDefault();closeModal()});
 
-mine.onclick=()=>{const on=document.body.classList.toggle("mine");mine.setAttribute("aria-pressed",on);render()};
+fab.addEventListener("click",ev=>{
+  const b=ev.target.closest("[data-view]"); if(!b||b.dataset.view===view) return;
+  view=b.dataset.view; try{localStorage.setItem(VKEY,view)}catch{}
+  render(); document.getElementById("now")?.scrollIntoView({block:"center",behavior:"smooth"});
+});
 let armed=null; // Clear needs a second tap so a stray tap at the event doesn't wipe the plan
 clear.onclick=()=>{
   if(!armed){clear.textContent="Tap again to clear";armed=setTimeout(()=>{armed=null;clear.textContent="Clear"},3000);return}
@@ -261,18 +326,19 @@ clear.onclick=()=>{
 copy.onclick=async()=>{
   const txt=SLOTS.map(sl=>{
     const f=sl.items[0];
-    if(f.k!=="talk") return `${sl.s}  ${f.t}`;
-    const mark=sl.items.filter(e=>st(e)).sort((a,b)=>ST.indexOf(st(a))-ST.indexOf(st(b)));
-    return `${sl.s}  `+(mark.length?mark.map(e=>`${st(e)==="going"?"Going":"Interested"}: ${e.t} (${ROOMS[e.c]})`).join("  /  "):"—");
+    if(!pickable(sl)) return `${sl.s}  ${f.t}`;
+    const mark=sl.items.filter(st).sort(byStatus);
+    return `${sl.s}  `+(mark.length?mark.map(e=>`${st(e)==="going"?"Going":"Interested"}: ${e.t} (${roomOf(e)})`).join("  /  "):"—");
   }).join("\n");
   try{await navigator.clipboard.writeText(txt);copy.textContent="Copied"}catch{copy.textContent="Copy failed"}
   setTimeout(()=>copy.textContent="Copy my plan",1500);
 };
 
 render();
-document.getElementById("now").scrollIntoView({block:"center"});
-setInterval(tick,30e3);
-document.addEventListener("visibilitychange",()=>{if(!document.hidden)tick()});
+document.getElementById("now")?.scrollIntoView({block:"center"});
+setInterval(render,30e3);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)render()});
+addEventListener("resize",()=>render());
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
 </script>
 </body>
