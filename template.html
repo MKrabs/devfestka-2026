@@ -141,7 +141,7 @@ dialog .co{font-size:.82rem;white-space:normal}
 /* view switch + status changes morph via the View Transitions API; snapshots keep their size and clip instead of stretching text */
 /* floating buttons get their own layer, painted after (above) the moving cards instead of inside the page snapshot below them */
 .fab{view-transition-name:fab}.upd{view-transition-name:upd}
-::view-transition-group(fab),::view-transition-group(upd){animation:none}
+::view-transition-group(fab),::view-transition-group(upd){animation:none;z-index:100} /* z-index: cards that only exist in the new view are stacked last, above the buttons otherwise */
 ::view-transition-group(*){animation-duration:.32s;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
 ::view-transition-old(*),::view-transition-new(*){height:100%;object-fit:none;object-position:left top}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
