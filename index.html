@@ -24,6 +24,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 var(--f-body)
 header{display:flex;flex-wrap:wrap;gap:16px 24px;align-items:end;justify-content:space-between;margin-bottom:24px}
 h1{font:800 clamp(2rem,5vw,3.2rem)/1 var(--f-display);margin:0;text-wrap:balance;letter-spacing:-.02em}
 .sub{color:var(--muted);margin:6px 0 0}
+.day{color:var(--ink)}
 .tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 button{font:inherit;cursor:pointer;color:inherit}
 .btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:7px 14px;font-size:.9rem}
@@ -76,8 +77,8 @@ body.mine .talks{grid-template-columns:1fr}
 <div class="wrap">
   <header>
     <div>
-      <h1 id="day">Sat 7 Nov</h1>
-      <p class="sub">My DevFest Karlsruhe · DHBW, Erzbergerstraße 121 · tap a talk to rank it</p>
+      <h1>My DevFest Karlsruhe</h1>
+      <p class="sub"><b class="day" id="day">Sat 7 Nov</b> · Tap a talk to rank it. Picks stay in this browser.</p>
     </div>
     <div class="tools">
       <span class="count" id="count"></span>

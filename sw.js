@@ -1,13 +1,18 @@
-// Offline: serve from cache, refresh cache in the background (stale-while-revalidate).
-// ponytail: a page update shows up on the second open, not the first; fine for a one-day page.
+// Network first so a new version shows up immediately when online;
+// cached copy when offline or when the venue wifi takes longer than 3s.
 const C = "devfestka-2026";
-self.addEventListener("install", e => { self.skipWaiting(); e.waitUntil(caches.open(C).then(c => c.addAll(["./"]))); });
+self.addEventListener("install", () => self.skipWaiting());
 self.addEventListener("activate", e => e.waitUntil(self.clients.claim()));
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
   e.respondWith(caches.open(C).then(async c => {
+    const net = fetch(e.request, { cache: "no-cache" }).then(r => {
+      if (r.ok || r.type === "opaque") c.put(e.request, r.clone());
+      return r;
+    });
+    const slow = new Promise(res => setTimeout(res, 3000));
     const hit = await c.match(e.request, { ignoreSearch: true });
-    const net = fetch(e.request).then(r => { if (r.ok || r.type === "opaque") c.put(e.request, r.clone()); return r; }).catch(() => hit);
-    return hit || net;
+    if (!hit) return net;
+    return Promise.race([net.catch(() => hit), slow.then(() => hit)]);
   }));
 });
