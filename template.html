@@ -138,6 +138,9 @@ dialog .co{font-size:.82rem;white-space:normal}
 .desc p{margin:0 0 10px}
 
 @media (max-width:760px){.nowline{display:none}.talks{grid-template-columns:1fr}}
+/* view switch + status changes morph via the View Transitions API; snapshots keep their size and clip instead of stretching text */
+::view-transition-group(*){animation-duration:.32s;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
+::view-transition-old(*),::view-transition-new(*){height:100%;object-fit:none;object-position:left top}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -196,6 +199,7 @@ for(const k in picks) if(!seen[k]&&BY_ID[k]) seen[k]=snap(BY_ID[k]);
 const save=()=>{store(KEY,picks);store(SKEY,seen)};
 save();
 let view=load(VKEY,"all");
+const keep=new Set(); // talks un-set while in My picks stay visible until you switch views (not saved)
 
 // A shared plan arrives as #p=<going ids>~<interested ids>; it is shown read-only and never written to your picks.
 let shared=null;
@@ -211,7 +215,6 @@ readHash();
 
 const cur=()=>shared||picks;
 const st=e=>e.id?cur()[e.id]||"":"";
-const byStatus=(a,b)=>ST.indexOf(st(a))-ST.indexOf(st(b)); // going before interested
 const moved=e=>{if(shared||!st(e))return null; const v=seen[e.id]; return v&&(v.s!==e.s||v.r!==roomOf(e))?v:null};
 const gone=()=>shared?[]:Object.keys(picks).filter(k=>!BY_ID[k]);
 
@@ -238,7 +241,7 @@ const movedNote=e=>{const v=moved(e);if(!v)return "";const was=[v.s!==e.s&&v.s,v
 
 function card(e,dim){
   const s=st(e);
-  return `<article class="talk${dim&&s!=="going"?" dim":""}" data-st="${s}" data-open="${e.id}" tabindex="0">
+  return `<article class="talk${(dim||keep.has(e.id)&&!s)&&s!=="going"?" dim":""}" data-st="${s}" data-open="${e.id}" tabindex="0" style="view-transition-name:t-${e.id}">
     <div class="top"><span class="room">${roomOf(e)}</span>${en(e)}</div>
     ${movedNote(e)}
     <h3 class="title">${esc(e.t)}</h3>
@@ -262,7 +265,7 @@ function rowsMine(){
   for(const sl of SLOTS){
     const k=sl.items[0].k;
     if(k==="plen"){flush(min(sl.s));rows.push({s:min(sl.s),e:min(sl.e),kind:"fixed",items:sl.items});prevEnd=min(sl.e);continue}
-    const picked=pickable(sl)?sl.items.filter(st).sort(byStatus):[];
+    const picked=pickable(sl)?sl.items.filter(e=>st(e)||keep.has(e.id)):[];
     if(picked.length){flush(min(sl.s));rows.push({s:min(sl.s),e:min(sl.e),kind:"talks",items:sl.items,show:picked});prevEnd=min(sl.e)}
     else run.push(sl);
   }
@@ -300,7 +303,7 @@ function render(){
         const anyGoing=r.items.some(e=>st(e)==="going");
         body=`<div class="talks${r.items.length===1?" one":""}" style="--cols:${r.items.length}">${r.items.map(e=>card(e,anyGoing)).join("")}</div>`;
       }
-      return `<section class="slot${past}" data-s="${r.s}" data-e="${r.e}" data-talk>
+      return `<section class="slot${past}" data-s="${r.s}" data-e="${r.e}" data-talk style="view-transition-name:s-${r.s}">
         <div class="head"><b>${hm(r.s)}</b><span>· ${dur(r.e-r.s)}</span>${r.s<=m&&m<r.e?`<span class="left">${short(r.e-m)} left</span>`:r===next?`<span class="soon">starts in ${short(r.s-m)}</span>`:""}</div>
         <div class="body">${body}</div><div class="end">${hm(r.e)}</div></section>`;
     }
@@ -311,7 +314,7 @@ function render(){
         ${r.brks.length?`<span>includes ${r.brks.map(sl=>`${esc(sl.items[0].t)} ${sl.s}–${sl.e}`).join(", ")}</span>`:""}</div></div>`;
     } else {
       const f=r.items[0];
-      body=`<div class="fixed ${f.k==="brk"?"":"plenary"}">${range(r)}<span><b>${esc(f.t)}</b> · ${esc(f.sp)}</span></div>`;
+      body=`<div class="fixed ${f.k==="brk"?"":"plenary"}" style="view-transition-name:f-${r.s}">${range(r)}<span><b>${esc(f.t)}</b> · ${esc(f.sp)}</span></div>`;
     }
     return `<section class="slot${past}" data-s="${r.s}" data-e="${r.e}"><div class="body">${body}</div></section>`;
   }).join("");
@@ -324,7 +327,7 @@ function render(){
     const pct=m>=+host.dataset.e?1:Math.max(0,(m-host.dataset.s)/(host.dataset.e-host.dataset.s));
     const bd=host.querySelector(".body");
     const y=bd.offsetTop+pct*bd.offsetHeight;
-    host.insertAdjacentHTML("beforeend",`<i class="nowdot" id="now" style="top:${y}px"></i><div class="nowline" style="top:${y}px"></div>`);
+    host.insertAdjacentHTML("beforeend",`<i class="nowdot" id="now" style="top:${y}px;view-transition-name:nowdot"></i><div class="nowline" style="top:${y}px;view-transition-name:nowline"></div>`);
   }
 
   document.body.dataset.view=mine?"mine":"all";
@@ -336,13 +339,21 @@ function render(){
   fab.querySelector(".track").style.transform=`translateY(${view==="mine"?-20:0}px)`; // label slides like the status switch
 }
 
+const animate=fn=>document.startViewTransition&&!modal.open&&!matchMedia("(prefers-reduced-motion:reduce)").matches?document.startViewTransition(fn):fn();
+// The time under the screen's middle, and where that time sits after a re-render: switching views keeps it in place.
+const slotsNow=()=>[...sched.querySelectorAll(".slot")];
+const frac=(t,el)=>Math.min(1,Math.max(0,(t-el.dataset.s)/(el.dataset.e-el.dataset.s)));
+function timeAt(y){const el=slotsNow().find(x=>x.getBoundingClientRect().bottom>y)||slotsNow().at(-1);if(!el)return null;const b=el.getBoundingClientRect();return +el.dataset.s+Math.min(1,Math.max(0,(y-b.top)/b.height))*(el.dataset.e-el.dataset.s)}
+function yOf(t){const el=slotsNow().find(x=>t<+x.dataset.e)||slotsNow().at(-1);const b=el.getBoundingClientRect();return b.top+frac(t,el)*b.height}
+
 function cycle(btn){
   const k=btn.dataset.cycle, i=(ST.indexOf(picks[k]||"")+1)%3;
+  if(view==="mine") keep.add(k);
   if(ST[i]){picks[k]=ST[i]; seen[k]=snap(BY_ID[k])} else {delete picks[k]; delete seen[k]}
   save();
   // slide this control first, then re-render once the slide has played
   btn.dataset.i=i; btn.querySelector(".track").style.transform=`translateY(${-26*i}px)`;
-  setTimeout(()=>{render(); if(modal.open) fillModal(k)},260);
+  setTimeout(()=>animate(()=>{render(); if(modal.open) fillModal(k)}),260);
 }
 
 function fillModal(k){
@@ -390,13 +401,14 @@ addEventListener("hashchange",()=>{readHash();render()});
 
 fab.addEventListener("click",()=>{
   if(shared){history.replaceState(null,"",location.pathname); shared=null}
-  view=view==="mine"?"all":"mine"; store(VKEY,view);
-  render(); document.getElementById("now")?.scrollIntoView({block:"center",behavior:"smooth"});
+  view=view==="mine"?"all":"mine"; store(VKEY,view); keep.clear();
+  const y=innerHeight/2, t=timeAt(y);
+  animate(()=>{render(); if(t!=null) scrollBy(0,yOf(t)-y)});
 });
 let armed=null; // Clear needs a second tap so a stray tap at the event doesn't wipe the plan
 clear.onclick=()=>{
   if(!armed){clear.textContent="Tap again to clear";armed=setTimeout(()=>{armed=null;clear.textContent="Clear"},3000);return}
-  clearTimeout(armed);armed=null;clear.textContent="Clear";picks={};seen={};save();render();
+  clearTimeout(armed);armed=null;clear.textContent="Clear";picks={};seen={};keep.clear();save();render();
 };
 
 // Share: the link carries the picks (#p=…); the text is the readable timeline. Native share sheet where there is one, clipboard otherwise.
